@@ -6,6 +6,7 @@ Created on Sep 21, 2013
 
 @author: swabha
 '''
+
 import sys,re
 
 def read(file_name):
@@ -17,22 +18,16 @@ def read(file_name):
         line = treebank.readline()
         if not line:
             break
-        units = []
-        if line.startswith('('):
+        if line.startswith('('): # new sentence
             line = line.strip()
             num_sentences += 1
-            #if line.startswith('( (S') == False:
-                #print line 4124824129
-            sentences.append(sentence)
-            sentence = []
-        elements = ""
-        for character in line:
-            elements += character
-            if character == ')':
-               
-            
+            sentences.append(sentence) # previous sentence
+            if (len(sentence) < 100):
+                print sentence
+            sentence = line
+        else:
+            sentence += line.strip()
     print num_sentences, len(sentences)
-    print sentences[1000]
 
 if __name__ == '__main__':
     treebank_file = sys.argv[1]
