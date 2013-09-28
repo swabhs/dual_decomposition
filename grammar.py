@@ -6,6 +6,7 @@ Created on Sep 21, 2013
 
 @author: swabha
 '''
+from rules import make_parse_list
 from collections import defaultdict
 import sys,re
 
@@ -15,7 +16,7 @@ def read_sentences(file_name):
     treebank = open(file_name, 'r')
     num_sentences = 0
     sentences = []
-    sentence = []
+    sentence = "dummy" #0th sentence
     while 1:
         line = treebank.readline()
         if not line:
@@ -23,9 +24,8 @@ def read_sentences(file_name):
         if line.startswith('('): # new sentence
             line = line.strip()
             num_sentences += 1
-            sentences.append(sentence) # previous sentence
-            #if (len(sentence) < 100):
-                #print sentence
+            if sentence != "dummy":
+                sentences.append(sentence) # previous sentence
             sentence = line
         else:
             sentence += line.strip()
@@ -45,7 +45,45 @@ def extract_pcfg(sentences):
                      popped = s_stack.pop()
                  element += popped
                  elements.append(element[::-1])
+        if (len(sentence) < 100):
+            print sentence
+            print elements, '\n'
         get_pos_tags(elements)
+
+            
+def extract_rules(elements):
+    parent_stack = []
+    child_map = defaultdict() # maps parent to a list of children
+    for i in xrange(len(elements)):
+        if elements[i] == '(':
+            continue
+        if elements[i] == ')':
+            parent_stack.pop()
+            continue
+        if elements[i-1] == '(':
+            if len(parent_stack) == 0:  # root node
+                root = elements[i]
+                parent_stack.append(root + '~' + str(i))
+                child_map[root + '~' + str(i)] = []
+            else:
+                child_map[parent_stack[-1]].append(elements[i])
+                if elements[i+1] != ')': # non terminal node
+                    parent_stack.append(elements[i] + '~' + str(i))
+                    child_map[elements[i] + '~' + str(i)] = []
+        else:
+            child_map[parent_stack[-1]].append(elements[i])
+   
+    for parent,children in child_map.iteritems():
+        rule = parent[:parent.index('~')] + '~~'
+        for child in children:
+            rule += child + '~'
+        rule = rule[:-1]
+        if rule in rule_counts:
+           rule_counts[rule] += 1
+        else:
+           rule_counts[rule] = 1
+    return child_map       
+    
 
 def get_pos_tags(elements):
     for element in elements:
@@ -61,12 +99,6 @@ def get_pos_tags(elements):
                 pos_counts[key] = new_count
             else:
                 pos_counts[key] = 1
-            if key in rule_counts:
-                new_count = rule_counts[key] + 1
-                rule_counts[key] = new_count
-            else:
-                rule_counts[key] = 1
-
 
 if __name__ == '__main__':
     pos_counts = defaultdict()
@@ -76,4 +108,14 @@ if __name__ == '__main__':
 
     treebank_file = sys.argv[1]
     sentences = read_sentences(treebank_file)
-    extract_pcfg(sentences)
+    for sentence in sentences:
+        if len(sentence) < 100:
+            print
+            print sentence
+            parse_list = make_parse_list(sentence)
+            print parse_list
+            rules = extract_rules(parse_list)
+            print rules
+            print rule_counts
+            break
+    #extract_pcfg(sentences[1:100])
