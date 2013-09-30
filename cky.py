@@ -4,7 +4,7 @@
 Given a pcfg, and an input sentence, finds the highest probability 
 tree for that sentence under the pcfg.
 '''
-import utils, sys, re
+import utils, sys, re, math
 from collections import defaultdict
 
 def init(sentence, nonterms, prob):
@@ -24,42 +24,33 @@ def init(sentence, nonterms, prob):
                         pi[i][j][X] = prob[X][rule]
                         bp[i][j][X] = rule
                     else:
-                        pi[i][j][X] = 0.0 
+                        pi[i][j][X] = float("-inf") 
                 else:
-                    pi[i][j][X] = 0.0
-                print pi[i][j][X]
+                    pi[i][j][X] = float("-inf")
     return pi, bp
          
 def run(sentence, prob, nonterms, start):
     n = len(sentence)
     pi, bp = init(sentence, nonterms, prob)
-    return
-    for l in xrange(0,n-1):
+    for l in xrange(1,n):
         for i in xrange(0, n-l):
             j = i + l
-            print i,j, len(nonterms)
             for X in nonterms:
                 max_score = float("-inf")
                 best_rule = ""
-                for s in xrange(i, j): # check for bugs
-                    print X in prob
+                for s in xrange(i, j): 
                     for rule, p in prob[X].iteritems():
                         # re match for Y, Z
                         exp = re.match(r'([^~]*)~~([^~]*)~([^~]*)', rule)
                         
                         if exp:
-                            #if X != exp.groups()[0]:
-                                #print 'strange, rule nesting wrong'
-                                #continue
                             Y,Z = exp.groups()[1:]
-
-                        else:
+                        else: # unary rule for terminal
                             continue
-                        score = p * pi[i][s][Y] * pi[s+1][j][Z]
-                        print score, p, pi[i][s][Y], pi[s+1][j][Z] 
+                        score = p + pi[i][s][Y] + pi[s+1][j][Z]
                         if score > max_score:
                             max_score = score
-                            best_rule = rule
+                            best_rule = Y + ' ' + Z + ' ' + str(s)
                 pi[i][j][X] = max_score
                 bp[i][j][X] = best_rule
     return pi, bp
@@ -88,7 +79,7 @@ def get_pcfg():
             X,Y = exp2.groups()
         if X not in prob:
            prob[X] = defaultdict()
-        prob[X][rule] = float(p)
+        prob[X][rule] = -math.log(float(p))
 
     nt_file = open('nonterminals.txt', 'r')
     while 1:
@@ -105,11 +96,17 @@ if __name__ == "__main__":
     prob, nonterms, start = get_pcfg()
     
     sentences = utils.get_sentences(dev_file)
+#    sentences = [["Ms.", "Haag"]]
     for sentence in sentences:
         if len(sentence) <= 10:
             print sentence
             pi, bp = run(sentence, prob, nonterms, start) 
-            print pi[0][len(sentence)-1]['**']
-            break
+            max = 0.0
+            best = ""
+            for nonterm, logprob in pi[0][len(sentence)-1].iteritems():
+                if logprob > max:
+                    max = logprob
+                    best = nonterm
+            print max, best, bp[0][len(sentence)-1][best]
         
 
