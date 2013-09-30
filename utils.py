@@ -74,3 +74,25 @@ def make_parse_list(parse):
     parse_list.insert(0, '**') # the start symbol for a pcfg 
     return parse_list
 
+'''
+Given the dev file, extracts sentences from it, as lists of tokens
+'''
+def get_sentences(dev_file):
+    dev = open(dev_file, 'r')
+    sentences = []
+    while 1:
+        line = dev.readline()
+        if not line:
+            break
+        line = line.strip()
+        parse = make_parse_list(line)
+        sentence = []
+        for i in xrange(0, len(parse)):
+            if parse[i] == ")" or parse[i] == "(":
+                continue
+            if parse[i+1] == ")":
+                sentence.append(parse[i])
+        sentences.append(sentence)
+    return sentences
+
+
