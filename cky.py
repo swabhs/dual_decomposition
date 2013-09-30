@@ -22,7 +22,7 @@ def init(sentence, nonterms, prob):
                     rule = X + '~~' + sentence[i]
                     if rule in prob[X]:
                         pi[i][j][X] = prob[X][rule]
-                        bp[i][j][X] = rule
+                        bp[i][j][X] = X + ' ' + sentence[i]
                     else:
                         pi[i][j][X] = float("-inf") 
                 else:
@@ -55,9 +55,22 @@ def run(sentence, prob, nonterms, start):
                 bp[i][j][X] = best_rule
     return pi, bp
 
-def decode(pi, bp):
-    tree = defaultdict()
-    return tree
+def decode(bp, i, j, X):
+    if i == j:
+        nonterm, word = bp[i][j][X].split(' ')
+        return '(' + nonterm + ' ' + word + ')'
+    Y, Z, split_pos = bp[i][j][X].split(' ')
+    s = int(split_pos)
+    return '(' + X + ' ' + decode(bp, i, s, Y) + ' ' + decode(bp, s+1, j, Z) + ')'
+       
+def find_best_parse(pi, bp, n):
+    max = 0.0
+    best = ""
+    for nonterm, logprob in pi[0][n-1].iteritems():
+        if logprob > max:
+            max = logprob
+            best = nonterm
+    print decode(bp, 0, n-1, best)
 
 def get_pcfg():
     prob = defaultdict()
@@ -96,17 +109,9 @@ if __name__ == "__main__":
     prob, nonterms, start = get_pcfg()
     
     sentences = utils.get_sentences(dev_file)
-#    sentences = [["Ms.", "Haag"]]
     for sentence in sentences:
-        if len(sentence) <= 10:
+        if len(sentence) <= 100:
             print sentence
             pi, bp = run(sentence, prob, nonterms, start) 
-            max = 0.0
-            best = ""
-            for nonterm, logprob in pi[0][len(sentence)-1].iteritems():
-                if logprob > max:
-                    max = logprob
-                    best = nonterm
-            print max, best, bp[0][len(sentence)-1][best]
-        
-
+            find_best_parse(pi, bp, len(sentence)) 
+            break
