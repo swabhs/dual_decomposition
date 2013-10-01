@@ -70,7 +70,7 @@ def find_best_parse(pi, bp, n):
         if logprob > max:
             max = logprob
             best = nonterm
-    print decode(bp, 0, n-1, best)
+    return decode(bp, 0, n-1, best)
 
 def get_pcfg():
     prob = defaultdict()
@@ -110,8 +110,9 @@ if __name__ == "__main__":
     
     sentences = utils.get_sentences(dev_file)
     for sentence in sentences:
-        if len(sentence) <= 100:
+        if len(sentence) == 25:
             print sentence
             pi, bp = run(sentence, prob, nonterms, start) 
-            find_best_parse(pi, bp, len(sentence)) 
+            parse = find_best_parse(pi, bp, len(sentence)) 
+            print parse
             break
