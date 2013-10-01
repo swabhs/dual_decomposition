@@ -8,6 +8,7 @@ Created on Sep 21, 2013
 '''
 
 from collections import defaultdict
+import utils
 
 '''
 Executes the dual decomposition algorithm
@@ -15,7 +16,7 @@ Note here that the nonterminals are more in number than the tags
 '''
 def run(sentence, pcfg_prob, nonterms, start, tagset, hmm_prob):
     max_iterations = 50
-    step_size = 0.01
+    step_size = 1
 
     n = len(sentence)
 
@@ -42,7 +43,29 @@ def run(sentence, pcfg_prob, nonterms, start, tagset, hmm_prob):
 
 
 def update(u, parse, tags, step_size):
-    #TODO
+    parse_list = utils.make_parse_list(parse)
+    terminals, parse_tags = utils.get_terminals_tags(parse_list)
+    
+    for i in xrange(0, len(tags)):
+        if tags[i] == parse_tags[i]:
+            u[i][tags[i]] = 0
+        else:
+            u[i][tags[i]] += step_size
+            u[i][parse_tags[i]] -= step_size
+           
 
 def agree(parse, tags):
-    #TODO
+    parse_list = utils.make_parse_list(parse)
+    terms, parse_tags = utils.get_terminals_tags(parse_list)
+    
+    for i in xrange(0, len(tags)):
+        if tags[i] == parse_tags[i]:
+            continue
+        else:
+            return False
+    return True 
+
+if __name__ == "__main__":
+    parse = "(S (NP (NNP Ms.) (NNP Haag)) (VP (VBZ plays) (NP (NNP Elianti))) (. .))"
+    tags = ["NNP", "NNP", "VBZ", "NNP", "."]
+    print agree(parse, tags)    

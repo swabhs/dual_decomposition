@@ -86,13 +86,21 @@ def get_sentences(dev_file):
             break
         line = line.strip()
         parse = make_parse_list(line)
-        sentence = []
-        for i in xrange(0, len(parse)):
-            if parse[i] == ")" or parse[i] == "(":
-                continue
-            if parse[i+1] == ")":
-                sentence.append(parse[i])
+        sentence, tags = get_terminals_tags(parse)
         sentences.append(sentence)
     return sentences
 
+'''
+Given a parse list, extracts the sentence and postags from it
+'''
+def get_terminals_tags(parse):
+    tags = []
+    terminals = []
+    for i in xrange(0, len(parse)):
+        if parse[i] == ")" or parse[i] == "(":
+            continue
+        if parse[i-1] == "(" and parse[i+2] == ')':
+            tags.append(parse[i])
+            terminals.append(parse[i+1])
 
+    return terminals, tags
