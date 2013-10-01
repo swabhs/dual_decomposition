@@ -7,7 +7,7 @@ tree for that sentence under the pcfg.
 import utils, sys, re, math
 from collections import defaultdict
 
-def init(sentence, nonterms, prob):
+def init(sentence, nonterms, prob, u):
     n = len(sentence)
     pi = defaultdict()
     bp = defaultdict()
@@ -21,23 +21,24 @@ def init(sentence, nonterms, prob):
                 if i == j:
                     rule = X + '~~' + sentence[i]
                     if rule in prob[X]:
-                        pi[i][j][X] = prob[X][rule]
+                        pi[i][j][X] = prob[X][rule] + u[i][X] #dd factor
                         bp[i][j][X] = X + ' ' + sentence[i]
                     else:
                         pi[i][j][X] = float("-inf") 
+                        bp[i][j][X] = "" 
                 else:
                     pi[i][j][X] = float("-inf")
     return pi, bp
          
-def run(sentence, prob, nonterms, start):
+def run(sentence, prob, nonterms, start, u):
     n = len(sentence)
-    pi, bp = init(sentence, nonterms, prob)
+    pi, bp = init(sentence, nonterms, prob, u)
     for l in xrange(1,n):
         for i in xrange(0, n-l):
             j = i + l
             for X in nonterms:
                 max_score = float("-inf")
-                best_rule = ""
+                best_rule = "" 
                 for s in xrange(i, j): 
                     for rule, p in prob[X].iteritems():
                         # re match for Y, Z
@@ -110,7 +111,7 @@ if __name__ == "__main__":
     
     sentences = utils.get_sentences(dev_file)
     for sentence in sentences:
-        if len(sentence) == 25:
+        if len(sentence) <= 10:
             print sentence
             pi, bp = run(sentence, prob, nonterms, start) 
             parse = find_best_parse(pi, bp, len(sentence)) 

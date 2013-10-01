@@ -8,7 +8,7 @@ Created on Sep 21, 2013
 '''
 
 import sys,re, time
-import utils
+import utils, cky, viterbi, dual_decomposition
 
 
 '''
@@ -17,15 +17,17 @@ Reads the learnt parameters of pcfg and hmm from respective files
 def quick_execute(dev):
     print "loading learnt parameters..."
     pcfg_prob, nonterms, start = cky.get_pcfg()
-    hmm, tagset = viterbi.get_hmm()
+    hmm, tagset = viterbi.get_hmm_tagset()
 
     print "reading dev data..."
     dev_sentences = utils.get_sentences(dev)
 
-    for sentence in dev_sentences:
-        print '\n', sentence, '\n'
-        print "running dual decomposition..."
-        dual_decomposition.run(sentence, pcfg_prob, nonterms, start, tagset, hmm_prob)
+    for sentence in dev_sentences[5100:]:
+        if len(sentence) == 10:
+            print '\n', sentence, '\n'
+            print "running dual decomposition..."
+            dual_decomposition.run(sentence, pcfg_prob, nonterms, start, tagset, hmm)
+            break
 
 
 '''
@@ -56,4 +58,4 @@ def execute(treebank, dev):
 if __name__ == "__main__":
     treebank = sys.argv[1]
     dev = sys.argv[2]
-    execute(treebank, dev)
+    quick_execute(dev)

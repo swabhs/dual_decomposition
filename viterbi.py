@@ -7,15 +7,51 @@ Created on Sep 12, 2013
 @author: swabha
 '''
 
-import math
+import math, sys, utils
 from collections import defaultdict
 
+def get_hmm_tagset():
+    hmm = defaultdict()
+    
+    hmm_file = open("hmm.txt", "r")
+    while 1:
+        line = hmm_file.readline()
+        if not line:
+            break
+        else:
+            line = line.strip()
+            param, prob = line.split(' ')
+            hmm[param] = -math.log(float(prob))
+    
+    tagset = set([])
+    tag_file = open("tagset.txt", "r")
+    while 1:
+        line = tag_file.readline()
+        if not line:
+            break
+        else:
+            line = line.strip()
+            tagset.add(line) 
+    return hmm, tagset
+
 def get_local_score(word, prev_tag, tag, hmm):
-    tscore = -math.log(hmm[prev_tag + '~>' + tag])
-    escore = -math.log(hmm[tag + '~>' + word])
+    trans = prev_tag + '~>' + tag
+    if trans in hmm:
+        tscore = hmm[trans]
+    else:
+        tscore = float("-inf")
+    
+    if word == "": # stopping local score
+        return tscore
+
+    emi = tag + '~>' + word
+    if emi in hmm:
+        escore = hmm[emi]
+    else:
+        escore = float("-inf")
     return tscore + escore
 
-def execute(sentence, labelset, weights):
+def run(sentence, labelset, weights, dd_u):
     
     n = len(sentence)
     pi = []
@@ -34,9 +70,10 @@ def execute(sentence, labelset, weights):
     for k in xrange(1, n+1):
         for u in labelset:
             max_score = float("-inf")
+            argmax = ""
             for w in labelset:
-                local_score = get_local_score(sentence[k], w, u, weights)
-                score = pi[k-1][w] + local_score
+                local_score = get_local_score(sentence[k-1], w, u, weights)
+                score = pi[k-1][w] + local_score + dd_u[k-1][w] # dd factor
                 if score > max_score:
                     max_score = score
                     argmax = w
@@ -48,7 +85,7 @@ def execute(sentence, labelset, weights):
     
     max_score = float("-inf")
     for w in labelset:
-        local_score =  -math.log(hmm[w + '~>STOP'])
+        local_score = get_local_score("", w, "STOP", weights)
         
         score = pi[n][w] + local_score
         if score > max_score:
@@ -64,3 +101,16 @@ def execute(sentence, labelset, weights):
     tags = list(reversed(tags))
     
     return tags
+
+if __name__ == "__main__":
+    hmm, tagset = get_hmm_tagset()
+    dev_file = sys.argv[1]
+    
+    sentences = utils.get_sentences(dev_file)
+    for sentence in sentences:
+        if len(sentence) <= 10:
+            print sentence
+            tags = run(sentence, tagset, hmm) 
+            print tags
+            break
+ 

@@ -42,34 +42,6 @@ def update_counts(parse_list, emission_counts, transition_counts, tag_counts):
 
 
 def write_hmm_params(emission, transition, tag_counts):
-#    tag_counts = defaultdict()
-#    for tr, count in transition.iteritems():
-#        tag, new_tag = tr.split('~>')
-#        if tag in tag_counts:
-#            tag_counts[tag] += 1
-#        else:
-#            tag_counts[tag] = 1
-#        if new_tag == 'STOP': # more hacks!!!!
-#            if 'STOP' in tag_counts:
-#                tag_counts['STOP'] += 1
-#            else:
-#                tag_counts['STOP'] = 1
-#    
-#    # super hacky, change!!!!
-#    em_tag_counts = defaultdict()
-#    for em, count in emission.iteritems():
-#        tag, word = em.split('~>')
-#        if tag in em_tag_counts:
-#           em_tag_counts[tag] += 1
-#        else:
-#           em_tag_counts[tag] = 1
-#
-#    #update both tag counts
-#    for em_tag, count in em_tag_counts.iteritems():
-#        if em_tag not in tag_counts:
-#           tag_counts[em_tag] = count
-#        else:
-#           tag_counts[em_tag] = max(count, tag_counts[tag])
 
     outfile = open('hmm.txt', 'w')
     for em, count in emission.iteritems():
@@ -83,6 +55,11 @@ def write_hmm_params(emission, transition, tag_counts):
         outfile.write(tr + ' ' + str(transition[tr]) + '\n')
     
     outfile.close()    
+
+    outfile2 = open('tagset.txt', 'w')
+    for tag in tag_counts.iterkeys():
+        outfile2.write(tag + '\n')
+    outfile2.close()
     return emission, transition
 
 def learn(parse_lists):
