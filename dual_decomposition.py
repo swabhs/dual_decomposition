@@ -15,8 +15,8 @@ Executes the dual decomposition algorithm
 Note here that the nonterminals are more in number than the tags
 '''
 def run(sentence, pcfg_prob, nonterms, start, tagset, hmm_prob):
-    max_iterations = 150
-    step_size = 10
+    max_iterations = 20
+    step_size = 5
 
     n = len(sentence)
 

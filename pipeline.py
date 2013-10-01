@@ -22,12 +22,12 @@ def quick_execute(dev):
     print "reading dev data..."
     dev_sentences = utils.get_sentences(dev)
 
-    for sentence in dev_sentences[5100:]:
-        if len(sentence) == 10:
+    for sentence in dev_sentences[100:200]:
+        if len(sentence) <= 10:
             print '\n', sentence, '\n'
+            #print dev_sentences.index(sentence)
             print "running dual decomposition..."
             dual_decomposition.run(sentence, pcfg_prob, nonterms, start, tagset, hmm)
-            break
 
 
 '''
