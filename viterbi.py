@@ -7,8 +7,13 @@ Created on Sep 12, 2013
 @author: swabha
 '''
 
+import math
 from collections import defaultdict
 
+def get_local_score(word, prev_tag, tag, hmm):
+    tscore = -math.log(hmm[prev_tag + '~>' + tag])
+    escore = -math.log(hmm[tag + '~>' + word])
+    return tscore + escore
 
 def execute(sentence, labelset, weights):
     
@@ -30,7 +35,7 @@ def execute(sentence, labelset, weights):
         for u in labelset:
             max_score = float("-inf")
             for w in labelset:
-                local_score = 0.0 # compute???
+                local_score = get_local_score(sentence[k], w, u, weights)
                 score = pi[k-1][w] + local_score
                 if score > max_score:
                     max_score = score
@@ -43,7 +48,7 @@ def execute(sentence, labelset, weights):
     
     max_score = float("-inf")
     for w in labelset:
-        local_score = 0.0 # compute?
+        local_score =  -math.log(hmm[w + '~>STOP'])
         
         score = pi[n][w] + local_score
         if score > max_score:
