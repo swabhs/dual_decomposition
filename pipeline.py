@@ -20,16 +20,22 @@ def quick_execute(dev):
     hmm, tagset = viterbi.get_hmm_tagset()
 
     print "reading dev data..."
-    dev_sentences = utils.get_sentences(dev)
+    parses = utils.read_parses_no_indent(dev)
 
-    for sentence in dev_sentences[100:200]:
-        if len(sentence) <= 10:
+    i = 0
+    for parse in parses:
+        if len(parse) > 100:
+            parse_list = utils.make_parse_list(parse)
+            sentence, truetags = utils.get_terminals_tags(parse_list)
             print '\n', sentence, '\n'
             #print dev_sentences.index(sentence)
             print "running dual decomposition..."
-            dual_decomposition.run(sentence, pcfg_prob, nonterms, start, tagset, hmm)
-
-
+            num_iterations = dual_decomposition.run(sentence, pcfg_prob, nonterms, start, tagset, hmm)
+            print "\n", truetags, " :true tags"
+            if num_iterations != -1:
+                print "converges in ", num_iterations ," iterations \n"
+            else:
+                print "does not converge :(\n"
 '''
 Learns the hmm, the pcfg from treebank and then executes the dual
 decomposition code.

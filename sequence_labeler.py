@@ -8,7 +8,7 @@ Created on Sep 21, 2013
 @author: swabha 
 ''' 
 from __future__ import division
-import sys, utils
+import sys, utils, operator
 from collections import defaultdict
 
 def update_counts(parse_list, emission_counts, transition_counts, tag_counts):
@@ -21,7 +21,7 @@ def update_counts(parse_list, emission_counts, transition_counts, tag_counts):
             emission_counts[emission_key] += 1
         else:
             emission_counts[emission_key] = 1
-            
+    
     tags.insert(0, '*')
     tags.append('STOP')
     
@@ -32,7 +32,7 @@ def update_counts(parse_list, emission_counts, transition_counts, tag_counts):
             transition_counts[transition_key] += 1
         else:
             transition_counts[transition_key] = 1
-    
+
     # updating tag counts
     for tag in tags:
         if tag in tag_counts:
@@ -47,12 +47,12 @@ def write_hmm_params(emission, transition, tag_counts):
     for em, count in emission.iteritems():
         tag, word = em.split('~>')
         emission[em] = count/tag_counts[tag]
-        outfile.write(em + ' ' + str(emission[em]) + '\n')
+        outfile.write('em:' + em + ' ' + str(emission[em]) + '\n')
 
     for tr, count in transition.iteritems():
         prev_tag, tag = tr.split('~>')
         transition[tr] = count/tag_counts[prev_tag]
-        outfile.write(tr + ' ' + str(transition[tr]) + '\n')
+        outfile.write('tr:' + tr + ' ' + str(transition[tr]) + '\n')
     
     outfile.close()    
 
@@ -62,24 +62,22 @@ def write_hmm_params(emission, transition, tag_counts):
     outfile2.close()
     return emission, transition
 
-def learn(parse_lists):
+def learn(parses):
     emission_counts = defaultdict()
     transition_counts = defaultdict()
     tag_counts = defaultdict()
 
-    for parse_list in parse_lists:
+    for parse in parses:
+        parse_list = utils.make_parse_list(parse)
         update_counts(parse_list, emission_counts, transition_counts, tag_counts)
-        
+ 
     return write_hmm_params(emission_counts, transition_counts, tag_counts)
 
 if __name__ == "__main__":
     treebank = sys.argv[1]
     parses = utils.read_parses_no_indent(treebank)
-    parse_lists = []
-    for parse in parses:
-        parse_lists.append(utils.make_parse_list(parse))
+    emission, transition = learn(parses)
 
-    learn(parse_lists)
 #===============================================================================
 # def extract_pcfg(sentence):
 #    s_stack = []

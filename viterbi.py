@@ -21,7 +21,7 @@ def get_hmm_tagset():
         else:
             line = line.strip()
             param, prob = line.split(' ')
-            hmm[param] = -math.log(float(prob))
+            hmm[param] = math.log(float(prob)) 
     
     tagset = set([])
     tag_file = open("tagset.txt", "r")
@@ -32,10 +32,11 @@ def get_hmm_tagset():
         else:
             line = line.strip()
             tagset.add(line) 
+
     return hmm, tagset
 
 def get_local_score(word, prev_tag, tag, hmm):
-    trans = prev_tag + '~>' + tag
+    trans = 'tr:' + prev_tag + '~>' + tag
     if trans in hmm:
         tscore = hmm[trans]
     else:
@@ -44,7 +45,7 @@ def get_local_score(word, prev_tag, tag, hmm):
     if word == "": # stopping local score
         return tscore
 
-    emi = tag + '~>' + word
+    emi = 'em:' + tag + '~>' + word
     if emi in hmm:
         escore = hmm[emi]
     else:
@@ -79,8 +80,10 @@ def run(sentence, labelset, weights, dd_u):
                     argmax = w
             pi[k][u] = max_score
             bp[k][u] = argmax
-    
-    # print "decoding..."
+#        for w in labelset:
+#            print "{0:.2f}".format(pi[k][w]) + " ",
+#        print
+#    # print "decoding..."
     tags = []
     
     max_score = float("-inf")
@@ -105,12 +108,19 @@ def run(sentence, labelset, weights, dd_u):
 if __name__ == "__main__":
     hmm, tagset = get_hmm_tagset()
     dev_file = sys.argv[1]
+    parses = utils.read_parses_no_indent(dev_file)
     
-    sentences = utils.get_sentences(dev_file)
-    for sentence in sentences:
-        if len(sentence) <= 10:
-            print sentence
-            tags = run(sentence, tagset, hmm) 
+    i = 0     
+    for parse in parses:
+        if len(parse) <= 100:
+            parse_list = utils.make_parse_list(parse)
+            terminals, truetags = utils.get_terminals_tags(parse_list)
+            print terminals
+            print truetags
+            tags = run(terminals, tagset, hmm) 
             print tags
+            i+=1
+            print "---------------------------"
+        if i==10:
             break
  

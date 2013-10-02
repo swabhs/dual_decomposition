@@ -15,7 +15,7 @@ Executes the dual decomposition algorithm
 Note here that the nonterminals are more in number than the tags
 '''
 def run(sentence, pcfg_prob, nonterms, start, tagset, hmm_prob):
-    max_iterations = 20
+    max_iterations = 50
     step_size = 5
 
     n = len(sentence)
@@ -35,13 +35,11 @@ def run(sentence, pcfg_prob, nonterms, start, tagset, hmm_prob):
        tags = viterbi.run(sentence, tagset, hmm_prob, u)
        
        if agree(parse, tags): 
-           print "converges at ", k
-           return parse, tags
+           return k # converges in the kth iteration
        
        update(u, parse, tags, step_size)
        k += 1
-    print "does not converge :("
-
+    return -1 # does not converge
 
 def update(u, parse, tags, step_size):
     parse_list = utils.make_parse_list(parse)
@@ -52,16 +50,14 @@ def update(u, parse, tags, step_size):
             u[i][tags[i]] = 0
         else:
             u[i][tags[i]] += step_size
-            #print u[i][tags[i]]
             u[i][parse_tags[i]] -= step_size
-            #print u[i][parse_tags[i]]
 
 def agree(parse, tags):
     parse_list = utils.make_parse_list(parse)
     terms, parse_tags = utils.get_terminals_tags(parse_list)
     
-    print tags
-    print parse_tags
+    print tags, " :tagger"
+    print parse_tags, " :parser"
     for i in xrange(0, len(tags)):
         if tags[i] == parse_tags[i]:
             continue

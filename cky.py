@@ -65,7 +65,7 @@ def decode(bp, i, j, X):
     return '(' + X + ' ' + decode(bp, i, s, Y) + ' ' + decode(bp, s+1, j, Z) + ')'
        
 def find_best_parse(pi, bp, n):
-    max = 0.0
+    max = float("-inf")
     best = ""
     for nonterm, logprob in pi[0][n-1].iteritems():
         if logprob > max:
@@ -93,7 +93,7 @@ def get_pcfg():
             X,Y = exp2.groups()
         if X not in prob:
            prob[X] = defaultdict()
-        prob[X][rule] = -math.log(float(p))
+        prob[X][rule] = math.log(float(p))
 
     nt_file = open('nonterminals.txt', 'r')
     while 1:
