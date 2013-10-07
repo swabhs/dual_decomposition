@@ -70,7 +70,8 @@ def learn(parses):
     for parse in parses:
         parse_list = utils.make_parse_list(parse)
         update_counts(parse_list, emission_counts, transition_counts, tag_counts)
- 
+        #TODO smoothing of emission counts, transition_counts, tag_counts
+         
     return write_hmm_params(emission_counts, transition_counts, tag_counts)
 
 if __name__ == "__main__":

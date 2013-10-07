@@ -104,3 +104,18 @@ def get_terminals_tags(parse):
             terminals.append(parse[i+1])
 
     return terminals, tags
+
+'''
+Opens the file containing the vocabulary and counts the number
+of words in it (one per line)
+'''
+def get_vocab_size():
+    vocab = open('vocabulary.txt', 'r')
+    v_size = 0
+    while 1:
+        line = vocab.readline()
+        if line:
+           v_size += 1
+        else:
+           break
+    return v_size
