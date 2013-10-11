@@ -40,27 +40,49 @@ def update_counts(parse_list, emission_counts, transition_counts, tag_counts):
         else:
             tag_counts[tag] = 1
 
-
-def write_hmm_params(emission, transition, tag_counts):
-
-    outfile = open('hmm.txt', 'w')
+def set_hmm_params(emission, transition, tag_counts):
     for em, count in emission.iteritems():
         tag, word = em.split('~>')
         emission[em] = count/tag_counts[tag]
-        outfile.write('em:' + em + ' ' + str(emission[em]) + '\n')
-
+    
     for tr, count in transition.iteritems():
         prev_tag, tag = tr.split('~>')
         transition[tr] = count/tag_counts[prev_tag]
+
+def write_hmm_params(emission, transition, tag_counts):
+    outfile = open('hmm.txt', 'w')
+    for em, count in emission.iteritems():
+        outfile.write('em:' + em + ' ' + str(emission[em]) + '\n')
+    for tr, count in transition.iteritems():
         outfile.write('tr:' + tr + ' ' + str(transition[tr]) + '\n')
-    
     outfile.close()    
 
     outfile2 = open('tagset.txt', 'w')
     for tag in tag_counts.iterkeys():
         outfile2.write(tag + '\n')
     outfile2.close()
-    return emission, transition
+
+'''
+Replaces all emissions with frequency <= 5 with the word
+-RARE-
+'''
+def smooth_emission(emission_counts, tags):
+    e_counts = defaultdict()
+    for key, val in emission_counts.iteritems():
+        if val <= 5:
+            tag, word = key.split('~>') 
+            new_key = tag + '~>-RARE-'
+            if new_key in e_counts:
+                e_counts[new_key] += val
+            else:
+                e_counts[new_key] = val
+        else:
+            e_counts[key] = val
+    for tag in tags:
+        key = tag + '~>-RARE-'
+        if key not in e_counts:
+            e_counts[key] = 1
+    return e_counts
 
 def learn(parses):
     emission_counts = defaultdict()
@@ -70,45 +92,15 @@ def learn(parses):
     for parse in parses:
         parse_list = utils.make_parse_list(parse)
         update_counts(parse_list, emission_counts, transition_counts, tag_counts)
-        #TODO smoothing of emission counts, transition_counts, tag_counts
-         
-    return write_hmm_params(emission_counts, transition_counts, tag_counts)
+    
+#    emission_counts = smooth_emission(emission_counts, tag_counts.keys()) # I don't like this! Why won't u work otherwise, Python?
+    set_hmm_params(emission_counts, transition_counts, tag_counts)
+    write_hmm_params(emission_counts, transition_counts, tag_counts)
+    return emission_counts, transition_counts
 
 if __name__ == "__main__":
     treebank = sys.argv[1]
     parses = utils.read_parses_no_indent(treebank)
     emission, transition = learn(parses)
 
-#===============================================================================
-# def extract_pcfg(sentence):
-#    s_stack = []
-#    parse_list = []
-#    for character in sentence:
-#         s_stack.append(character)
-#         if character == ')':
-#             element = ''
-#             popped = s_stack.pop()
-#             while popped != '(':
-#                 element += popped
-#                 popped = s_stack.pop()
-#             element += popped
-#             parse_list.append(element[::-1])
-#    get_pos_tags(parse_list)
-#===============================================================================
-
-#===============================================================================
-# def get_pos_tags(parse_list):
-#    for element in parse_list:
-#        x = re.match(r'\((\S*)(.*)\)', element) # matching all non-terminals
-#        if x:
-#           non_terminals.add(x.group(1))
-#        x = re.match(r'\((\S*) (\S+)\)', element) # matching all (pos_tag terminal) parse_list
-#        if x:
-#            terminals.add(x.group(2))
-#            key = x.group(2)+'~'+x.group(1)
-#            if key in pos_counts:
-#                pos_counts[key] += 1
-#            else:
-#                pos_counts[key] = 1
-#===============================================================================
 

@@ -7,7 +7,7 @@ Created on Sep 12, 2013
 @author: swabha
 '''
 
-import math, sys, utils
+import math, sys, utils, evaluate
 from collections import defaultdict
 
 def get_hmm_tagset():
@@ -49,10 +49,14 @@ def get_local_score(word, prev_tag, tag, hmm):
     if emi in hmm:
         escore = hmm[emi]
     else:
+        emi = 'em:' + tag + '~>-RARE-'
+#        if emi in hmm:
+#        escore = hmm[emi]
+#        else:
         escore = float("-inf")
     return tscore + escore
 
-def run(sentence, labelset, weights, dd_u):
+def run(sentence, labelset, weights):#, dd_u):
     
     n = len(sentence)
     pi = []
@@ -74,7 +78,7 @@ def run(sentence, labelset, weights, dd_u):
             argmax = ""
             for w in labelset:
                 local_score = get_local_score(sentence[k-1], w, u, weights)
-                score = pi[k-1][w] + local_score + dd_u[k-1][w] # dd factor
+                score = pi[k-1][w] + local_score# + dd_u[k-1][w] # dd factor
                 if score > max_score:
                     max_score = score
                     argmax = w
@@ -107,10 +111,12 @@ def run(sentence, labelset, weights, dd_u):
 
 if __name__ == "__main__":
     hmm, tagset = get_hmm_tagset()
+    tagset.remove('STOP')
     dev_file = sys.argv[1]
     parses = utils.read_parses_no_indent(dev_file)
     
     i = 0     
+    tot_acc = 0.0
     for parse in parses:
         if len(parse) <= 100:
             parse_list = utils.make_parse_list(parse)
@@ -118,9 +124,10 @@ if __name__ == "__main__":
             print terminals
             print truetags
             tags = run(terminals, tagset, hmm) 
+            tot_acc += evaluate.accuracy(truetags, tags)
             print tags
             i+=1
             print "---------------------------"
-        if i==10:
+        if i==1000:
             break
- 
+    print tot_acc/i
