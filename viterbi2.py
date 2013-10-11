@@ -56,7 +56,7 @@ def get_local_score(word, prev_tag, tag, hmm):
         escore = float("-inf")
     return tscore + escore
 
-def run(sentence, labelset, weights, dd_u):
+def run(sentence, labelset, weights):#, dd_u):
     
     n = len(sentence)
     pi = []
@@ -78,7 +78,7 @@ def run(sentence, labelset, weights, dd_u):
             argmax = ""
             for w in labelset:
                 local_score = get_local_score(sentence[k-1], w, u, weights)
-                score = pi[k-1][w] + local_score + dd_u[k-1][w] # dd factor
+                score = pi[k-1][w] + local_score# + dd_u[k-1][w] # dd factor
                 if score > max_score:
                     max_score = score
                     argmax = w
