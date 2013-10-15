@@ -124,6 +124,7 @@ def learn(parses):
 #   emission_counts = smooth_emission(emission_counts, tag_counts) # I don't like this! Why won't u work otherwise, Python?
     set_hmm_params(emission_counts, transition_counts, tag_counts)
     check_if_prob_dist(emission_counts)
+    check_if_prob_dist(transition_counts)
     write_hmm_params(emission_counts, transition_counts, tag_counts)
     return emission_counts, transition_counts
 
