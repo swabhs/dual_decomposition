@@ -40,6 +40,18 @@ def update_counts(parse_list, emission_counts, transition_counts, tag_counts):
         else:
             tag_counts[tag] = 1
 
+def check_if_prob_dist(param):
+    tags = defaultdict()
+    for par, prob in param.iteritems():
+        tag, word = par.split('~>')
+        if tag in tags:
+            tags[tag] += prob
+        else:
+            tags[tag] = prob
+    for tag, prob in tags.iteritems():
+        if str(prob) != '1.0':
+            print "problem with", tag
+
 def set_hmm_params(emission, transition, tag_counts):
     for em, count in emission.iteritems():
         tag, word = em.split('~>')
@@ -66,7 +78,16 @@ def write_hmm_params(emission, transition, tag_counts):
 Replaces all emissions with frequency <= 5 with the word
 -RARE-
 '''
-def smooth_emission(emission_counts, tags):
+def smooth_emission(emission_counts, tag_counts):
+    # find lowest count of all tags (where to set the threshold for -RARE-)
+#    lowest = defaultdict()
+#    for tag in tags:
+#        lowest[tag] = 100000
+#    for key, val in emission_counts.iteritems():
+#        tag, word = key.split('~>')
+#        if lowest[tag] > val:
+#            lowest[tag] = val
+#    print lowest
     e_counts = defaultdict()
     for key, val in emission_counts.iteritems():
         if val <= 5:
@@ -78,10 +99,14 @@ def smooth_emission(emission_counts, tags):
                 e_counts[new_key] = val
         else:
             e_counts[key] = val
-    for tag in tags:
-        key = tag + '~>-RARE-'
-        if key not in e_counts:
-            e_counts[key] = 1
+    
+#    for tag, count in tag_counts.iteritems():
+#        if tag == '*' or tag == 'STOP':
+#            continue
+#        key = tag + '~>RARE'
+#        if key not in e_counts:
+#            e_counts[key] = 5
+#            tag_counts[tag] += 5
     return e_counts
 
 def learn(parses):
@@ -92,9 +117,13 @@ def learn(parses):
     for parse in parses:
         parse_list = utils.make_parse_list(parse)
         update_counts(parse_list, emission_counts, transition_counts, tag_counts)
-    
-#    emission_counts = smooth_emission(emission_counts, tag_counts.keys()) # I don't like this! Why won't u work otherwise, Python?
+
+#   I'm not doing smoothing because smoothing gives very bad results
+#   Every -RARE- word gets assigned to the FW tag, and then all following tags are FW. 
+#   Because FW->-RARE- and FW->FW have high probabilities
+#   emission_counts = smooth_emission(emission_counts, tag_counts) # I don't like this! Why won't u work otherwise, Python?
     set_hmm_params(emission_counts, transition_counts, tag_counts)
+    check_if_prob_dist(emission_counts)
     write_hmm_params(emission_counts, transition_counts, tag_counts)
     return emission_counts, transition_counts
 

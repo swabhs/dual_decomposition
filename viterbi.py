@@ -50,13 +50,13 @@ def get_local_score(word, prev_tag, tag, hmm):
         escore = hmm[emi]
     else:
         emi = 'em:' + tag + '~>-RARE-'
-#        if emi in hmm:
-#        escore = hmm[emi]
-#        else:
-        escore = float("-inf")
+        if emi in hmm:
+            escore = hmm[emi]
+        else:
+            escore = float("-inf")
     return tscore + escore
 
-def run(sentence, labelset, weights, dd_u):
+def run(sentence, labelset, weights): #, dd_u):
     
     n = len(sentence)
     pi = []
@@ -68,17 +68,17 @@ def run(sentence, labelset, weights, dd_u):
         bp.append(defaultdict())
         for label in labelset:
             pi[i][label] = float("-inf")
-            bp[i][label] = ""
+            bp[i][label] = list(labelset)[0] #"" # is it buggy?
     pi[0]['*'] = 0.0
     
     # print 'main viterbi algorithm ...'
     for k in xrange(1, n+1):
         for u in labelset:
             max_score = float("-inf")
-            argmax = ""
+            argmax = list(labelset)[0] #"" # is it buggy?
             for w in labelset:
                 local_score = get_local_score(sentence[k-1], w, u, weights)
-                score = pi[k-1][w] + local_score + dd_u[k-1][w] # dd factor
+                score = pi[k-1][w] + local_score #+ dd_u[k-1][w] # dd factor
                 if score > max_score:
                     max_score = score
                     argmax = w
@@ -91,6 +91,7 @@ def run(sentence, labelset, weights, dd_u):
     tags = []
     
     max_score = float("-inf")
+    best_last_label = list(labelset)[0] #"" # dummy best label - is it buggy?
     for w in labelset:
         local_score = get_local_score("", w, "STOP", weights)
         
@@ -118,7 +119,7 @@ if __name__ == "__main__":
     i = 0     
     tot_acc = 0.0
     for parse in parses:
-        if len(parse) <= 100:
+        if True:#len(parse) <= 100:
             parse_list = utils.make_parse_list(parse)
             terminals, truetags = utils.get_terminals_tags(parse_list)
             print terminals
@@ -128,6 +129,4 @@ if __name__ == "__main__":
             print tags
             i+=1
             print "---------------------------"
-        if i==1000:
-            break
     print tot_acc/i
