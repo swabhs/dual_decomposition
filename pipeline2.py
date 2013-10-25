@@ -1,14 +1,14 @@
 # ! /usr/bin/python
 
 '''
-Pipeline to run sequence labeling, pcfg parsing and dual decomposition.
-Created on Sep 21, 2013
+Pipeline to run diverse sequence labeling using dual decomposition.
+Created on Oct 15, 2013
 
 @author: swabha
 '''
 
 import sys,re, time
-import utils, evaluate, viterbi, dual_decomposition2
+import utils, evaluate, viterbi, dual_decomposition3
 
 
 '''
@@ -23,14 +23,15 @@ def quick_execute(dev):
 
     i = 0
     for parse in parses:
-        i += 1
-        if i <= 1000: #len(parse) <100:
+       
+        if len(parse) <100:
+            i+=1
             parse_list = utils.make_parse_list(parse)
             sentence, truetags = utils.get_terminals_tags(parse_list)
             print '\n', sentence, '\n'
             
             print "running dual decomposition..."
-            num_iterations, tags1, tags2 = dual_decomposition2.run(sentence, tagset, hmm)
+            num_iterations, tags1, tags2 = dual_decomposition3.run(sentence, tagset, hmm)
             if num_iterations != -1:
                 print
                 print tags1, ":tagger1, accuracy = ", evaluate.accuracy(truetags, tags1)
@@ -40,7 +41,9 @@ def quick_execute(dev):
                 print "does not converge :(\n"
             print "\n", truetags, " :true tags"
             print "-----------------------------------------------"
-
+        
+        if i==1:
+            break     
 
 '''
 Learns the hmm, the pcfg from treebank and then executes the dual
