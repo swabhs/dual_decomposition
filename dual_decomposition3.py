@@ -23,8 +23,9 @@ Executes the dual decomposition algorithm
 Note here that the nonterminals are more in number than the tags
 '''
 def run(sentence, tagset, hmm_prob):
-    max_iterations = 25 
-    step_size = 50
+    max_iterations = 50 
+    step_size = 1000
+
     n = len(sentence)
 
     u = defaultdict() # dual decomposition parameter
@@ -32,7 +33,7 @@ def run(sentence, tagset, hmm_prob):
  
     k = 0 # number of iterations
     while k < max_iterations:
-
+       
        if k == 0:
           best_tags = viterbi.run(sentence, tagset, hmm_prob, None)
        tags2 = fst_viterbi.run(tagset, best_tags, u)
@@ -40,6 +41,7 @@ def run(sentence, tagset, hmm_prob):
        tags1 = viterbi.run(sentence, tagset, hmm_prob, u)
        if k == 0:
            print "initial tags:"
+       print k
        print tags2, ":fst_tagger"
        print tags1, ":hmm_tagger"
               
@@ -71,8 +73,8 @@ def update(indi1, indi2, u, step_size):
     for i in xrange(0, len(indi1)):
         for t in u[i].iterkeys():
             u[i][t] -= (indi2[i][t] - indi1[i][t])*step_size
-            print u[i][t],
-        print
+            #print u[i][t],
+        #print
 '''
 Check if two tag sequences agree
 '''

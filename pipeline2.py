@@ -22,9 +22,10 @@ def quick_execute(dev):
     parses = utils.read_parses_no_indent(dev)
 
     i = 0
+    converges = 0
     for parse in parses:
        
-        if len(parse) <100:
+        if True: #len(parse) <100:
             i+=1
             parse_list = utils.make_parse_list(parse)
             sentence, truetags = utils.get_terminals_tags(parse_list)
@@ -37,14 +38,15 @@ def quick_execute(dev):
                 print tags1, ":tagger1, accuracy = ", evaluate.accuracy(truetags, tags1)
                 print tags2, ":tagger2, accuracy = ", evaluate.accuracy(truetags, tags2)
                 print "converges in ", num_iterations ," iterations \n"
+                converges += 1
             else:
                 print "does not converge :(\n"
             print "\n", truetags, " :true tags"
             print "-----------------------------------------------"
         
-        if i==1:
+        if i==10000:
             break     
-
+    print converges*100/i, "% convergence"
 '''
 Learns the hmm, the pcfg from treebank and then executes the dual
 decomposition code.
