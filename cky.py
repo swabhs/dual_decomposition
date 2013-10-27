@@ -21,11 +21,13 @@ def init(sentence, nonterms, prob, u):
                 if i == j:
                     rule = X + '~~' + sentence[i]
                     if rule in prob[X]:
-                        pi[i][j][X] = prob[X][rule] + u[i][X] #dd factor
-                        bp[i][j][X] = X + ' ' + sentence[i]
-                    else:
-                        pi[i][j][X] = float("-inf") 
-                        bp[i][j][X] = "" 
+                        if u == None:
+                            pi[i][j][X] = prob[X][rule] #dd factor
+                        else:
+                            pi[i][j][X] = prob[X][rule] + u[i][X] #dd factor
+                    else: #smoothing
+                        pi[i][j][X] = -50.00 #float("-inf") 
+                    bp[i][j][X] = rule #"" 
                 else:
                     pi[i][j][X] = float("-inf")
     return pi, bp
@@ -38,7 +40,7 @@ def run(sentence, prob, nonterms, start, u):
             j = i + l
             for X in nonterms:
                 max_score = float("-inf")
-                best_rule = "" 
+                best_rule = "NP~~NOUN~ADJ" #dummy rule, buggy? 
                 for s in xrange(i, j): 
                     for rule, p in prob[X].iteritems():
                         # re match for Y, Z
@@ -58,62 +60,80 @@ def run(sentence, prob, nonterms, start, u):
 
 def decode(bp, i, j, X):
     if i == j:
-        nonterm, word = bp[i][j][X].split(' ')
-        return '(' + nonterm + ' ' + word + ')'
+        nonterm, word = bp[i][j][X].split('~~')
+        return '( ' + nonterm + ' ' + word + ' )'
     Y, Z, split_pos = bp[i][j][X].split(' ')
     s = int(split_pos)
-    return '(' + X + ' ' + decode(bp, i, s, Y) + ' ' + decode(bp, s+1, j, Z) + ')'
+    return '( ' + X + ' ' + decode(bp, i, s, Y) + ' ' + decode(bp, s+1, j, Z) + ' )'
        
 def find_best_parse(pi, bp, n):
     max = float("-inf")
-    best = ""
+    best = "NP~~NOUN~ADJ" # dummy rule, buggy?
     for nonterm, logprob in pi[0][n-1].iteritems():
         if logprob > max:
             max = logprob
             best = nonterm
     return decode(bp, 0, n-1, best)
 
-def get_pcfg():
+def get_pcfg(pcfg):
     prob = defaultdict()
-    nonterms = []
+    nonterms = set([])
     start = '**' # pass this across files?
     
-    prob_file = open('pcfg.txt', 'r')
+    prob_file = open(pcfg, 'r')
     while 1:
         line = prob_file.readline()
         if not line:
             break
+
         line = line.strip()
-        rule, p = line.split(' ')
-        exp = re.match(r'([^~]*)~~([^~]*)~([^~]*)', rule)
-        if exp:
-            X,Y,Z = exp.groups()
+        X, yz, p = line.split('\t')
+        nonterms.add(X)
+
+        if ' ' in yz:
+            Y, Z = yz.split(' ')
+            rule = X + '~~' + Y + '~' + Z
+            nonterms.add(Y)
+            nonterms.add(Z)
         else:
-            exp2 = re.match(r'([^~]*)~~([^~]*)', rule)
-            X,Y = exp2.groups()
+            rule = X + '~~' + yz
+
         if X not in prob:
            prob[X] = defaultdict()
-        prob[X][rule] = math.log(float(p))
+        prob[X][rule] = float(p)
 
-    nt_file = open('nonterminals.txt', 'r')
-    while 1:
-        line = nt_file.readline()
-        if not line:
-           break
-        line = line.strip()
-        nonterms.append(line)
 
-    return prob, nonterms, start
+    return prob, list(nonterms), start
            
+def get_sentences(datafile):
+    sentences = []
+    data = open(datafile, 'r')
+    while 1:
+       line =  data.readline()
+       if not line:
+          break
+       line = line.strip()
+       sentences.append(line.split(' '))
+    return sentences
+
 if __name__ == "__main__":
-    dev_file = sys.argv[1]
-    prob, nonterms, start = get_pcfg()
+    print "reading pcfg..."
+    prob, nonterms, start = get_pcfg(sys.argv[1])
     
-    sentences = utils.get_sentences(dev_file)
+    print "reading data..."
+    sentences = get_sentences(sys.argv[2])
+
+    print "parsing using cky..."
+    parses = []
     for sentence in sentences:
-        if len(sentence) <= 10:
-            print sentence
-            pi, bp = run(sentence, prob, nonterms, start) 
-            parse = find_best_parse(pi, bp, len(sentence)) 
-            print parse
-            break
+        if True: #len(sentence) <= 10:
+            print sentences.index(sentence), ": ", sentence
+            pi, bp = run(sentence, prob, nonterms, start, None) 
+            parse = find_best_parse(pi, bp, len(sentence))
+            parses.append(parse)
+            print parse, "\n"
+            
+    parsefile = open("parse.out", "w")
+    for parse in parses:
+        parsefile.write(parse + '\n')
+    parsefile.close()
