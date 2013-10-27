@@ -41,9 +41,9 @@ def run(sentence, tagset, hmm_prob):
        tags1 = viterbi.run(sentence, tagset, hmm_prob, u)
        if k == 0:
            print "initial tags:"
-       print k
-       print tags2, ":fst_tagger"
-       print tags1, ":hmm_tagger"
+       #print "iteration ", k
+       #print tags2, ":fst_tagger"
+       #print tags1, ":hmm_tagger"
               
        if agree(tags1, tags2): 
            return k, tags1, tags2  # converges in the kth iteration

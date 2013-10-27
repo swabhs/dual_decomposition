@@ -29,7 +29,7 @@ def quick_execute(dev):
             i+=1
             parse_list = utils.make_parse_list(parse)
             sentence, truetags = utils.get_terminals_tags(parse_list)
-            print '\n', sentence, '\n'
+            print '\n', i, '\n', sentence, '\n'
             
             print "running dual decomposition..."
             num_iterations, tags1, tags2 = dual_decomposition3.run(sentence, tagset, hmm)
