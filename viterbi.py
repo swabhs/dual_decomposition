@@ -96,7 +96,7 @@ if __name__ == "__main__":
 #    #print hmm['tr:sentence_boundary~>FUT']
 
     sentences = hw3_utils.get_sentences(sys.argv[3])
-    posfile = open("candidate_postags_dev.out", "w")
+    posfile = open("candidate_postags_test.out", "w")
     for sentence in sentences:
         print sentences.index(sentence), sentence
         postags = run(sentence, tagset, hmm, None) 

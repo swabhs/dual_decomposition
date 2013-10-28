@@ -7,41 +7,19 @@ from __future__ import division
 from collections import defaultdict
 
 '''
-Find the lowest unary-rule prob associated with each nonterminal
-'''
-def smooth(prob):
-    min_probs = defaultdict()
-    avg = 0.0
-    internal = 0
-    for nonterm,rule_p in prob.iteritems():
-        min_p = 100
-        for rule,p in rule_p.iteritems():
-              x,yz = rule.split('~~')
-              if '~' in yz:
-                  if p < min_p:
-                      min_p = p 
-        if min_p != 100:
-            min_probs[nonterm] = min_p
-            avg += min_p
-            print min_p
-        else:
-             internal += 1
-
-    avg /= len(min_probs)
-    print "avg min", avg
-    print "internal nodes", internal
-    print "total nodes", len(prob)
-    return avg
-
-'''
 Read pcfg 
 '''
-def get_pcfg(pcfg):
-    prob = defaultdict()
-    nonterms = set([])
-    start = 'S' # pass this across files?
+def get_pcfg(pcfg_file):
+    pcfg_u = defaultdict() # unary rule probabilites
+    pcfg_b = defaultdict() # binary rule probabilites
+    pcfg = defaultdict()
+    # keep these separate for efficiency, less number of rules to 
+    # iterate over in cky
 
-    prob_file = open(pcfg, 'r')
+    nonterms = set([])
+    start = 'S'
+    
+    prob_file = open(pcfg_file, 'r')
     while 1:
         line = prob_file.readline()
         if not line:
@@ -50,20 +28,25 @@ def get_pcfg(pcfg):
         line = line.strip()
         X, yz, p = line.split('\t')
         nonterms.add(X)
+         
+        if X not in pcfg:
+            pcfg[X] = defaultdict()
+            pcfg_u[X] = defaultdict()
 
         if ' ' in yz:
             Y, Z = yz.split(' ')
             rule = X + '~~' + Y + '~' + Z
+            if X not in pcfg_b:
+                pcfg_b[X] = defaultdict()
+            pcfg_b[X][rule] = float(p)
             nonterms.add(Y)
             nonterms.add(Z)
         else:
             rule = X + '~~' + yz
-
-        if X not in prob:
-           prob[X] = defaultdict()
-        prob[X][rule] = float(p)
-
-    return prob, list(nonterms), start
+            pcfg_u[X][rule] = float(p)
+        
+        pcfg[X][rule] = float(p)
+    return pcfg, pcfg_b, list(nonterms), start
 
 def get_sentences(datafile):
     sentences = []
@@ -90,7 +73,7 @@ def get_hmm_tagset(tfile, efile):
             break
         else:
             line = line.strip()
-            current_tag, prev_tag, prob = line.split('\t')
+            prev_tag, current_tag, prob = line.split('\t')
             param = "tr:" + prev_tag + '~>' + current_tag
             hmm[param] = float(prob)
             tagset.add(current_tag)
@@ -111,4 +94,8 @@ def get_hmm_tagset(tfile, efile):
 
     return hmm, list(tagset)
 
-
+def print_size(pcfg):
+    size = 0
+    for nonterm, rules in pcfg.iteritems():
+        size += len(rules)
+    print size
