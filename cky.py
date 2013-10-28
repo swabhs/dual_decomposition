@@ -4,7 +4,7 @@
 Given a pcfg, and an input sentence, finds the highest probability 
 tree for that sentence under the pcfg.
 '''
-import pcfg_utils, sys, re, math
+import hw3hw3hw3_utils, sys, re, math
 from collections import defaultdict
 
 def init(sentence, nonterms, prob, u, min_prob):
@@ -68,14 +68,14 @@ def decode(bp, i, j, X):
        
 if __name__ == "__main__":
     #print "reading pcfg..."
-    prob, nonterms, start = pcfg_utils.get_pcfg(sys.argv[1])
+    prob, nonterms, start = hw3_utils.get_pcfg(sys.argv[1])
     min_prob = -50.0 #pcfg_utils.smooth(prob)
     
     #print "reading data..."
-    sentences = pcfg_utils.get_sentences(sys.argv[2])
+    sentences = hw3_utils.get_sentences(sys.argv[2])
 
     #print "parsing using cky..."
-    parsefile = open("parse.out", "w")
+    parsefile = open("candidate_parses_dev.out", "w")
     for sentence in sentences:
         if True: #len(sentence) <= 10:
             print sentences.index(sentence), ": ", sentence
