@@ -13,10 +13,12 @@ def get_pcfg(pcfg_file):
     pcfg_u = defaultdict() # unary rule probabilites
     pcfg_b = defaultdict() # binary rule probabilites
     pcfg = defaultdict()
+    inv = defaultdict()
     # keep these separate for efficiency, less number of rules to 
     # iterate over in cky
 
     nonterms = set([])
+    leaves = set([])
     start = 'S'
     
     prob_file = open(pcfg_file, 'r')
@@ -31,7 +33,6 @@ def get_pcfg(pcfg_file):
          
         if X not in pcfg:
             pcfg[X] = defaultdict()
-            pcfg_u[X] = defaultdict()
 
         if ' ' in yz:
             Y, Z = yz.split(' ')
@@ -41,12 +42,19 @@ def get_pcfg(pcfg_file):
             pcfg_b[X][rule] = float(p)
             nonterms.add(Y)
             nonterms.add(Z)
+            inv_key = Y + '~' + Z
+            if inv_key not in inv:
+               inv[inv_key] = defaultdict()
+            inv[inv_key][X] = float(p)
         else:
             rule = X + '~~' + yz
-            pcfg_u[X][rule] = float(p)
+            if yz not in pcfg_u:
+                pcfg_u[yz] = defaultdict()
+            pcfg_u[yz][X] = float(p)
+            leaves.add(X)
         
         pcfg[X][rule] = float(p)
-    return pcfg, pcfg_b, list(nonterms), start
+    return pcfg_u, inv, list(leaves), start
 
 def get_sentences(datafile):
     sentences = []

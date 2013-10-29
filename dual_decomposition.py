@@ -7,8 +7,10 @@ Created on Sep 21, 2013
 @author: swabha
 '''
 
+from __future__ import division
+from time import time
 from collections import defaultdict
-import utils, cky, viterbi, hw3_utils, sys
+import utils, fast_cky, viterbi, hw3_utils, sys
 
 '''
 Executes the dual decomposition algorithm
@@ -51,9 +53,9 @@ def init_dd_param(u, n, tagset):
         for t in tagset:
             u[i][t] = 0
 
-def run(sentence, tagset, non_terms, start, hmm_prob, pcfg, pcfg_b):
+def run(sentence, tagset, preterms, start, hmm_prob, pcfg, pcfg_u):
     max_iterations = 20
-    step_size = 4.5
+    step_size = 1.0
 
     n = len(sentence)
 
@@ -65,7 +67,7 @@ def run(sentence, tagset, non_terms, start, hmm_prob, pcfg, pcfg_b):
           
         tags = viterbi.run(sentence, tagset, hmm_prob, u)
 
-        parse = cky.run(sentence, nonterms, start, pcfg, pcfg_b, u)
+        parse = fast_cky.run(sentence, preterms, start, pcfg, pcfg_u, u)
         parse_list = utils.make_parse_list(parse)
         terms, parse_tags = utils.get_terminals_tags(parse_list)
 
@@ -75,17 +77,18 @@ def run(sentence, tagset, non_terms, start, hmm_prob, pcfg, pcfg_b):
 
         if agree(parse_tags, tags):
             return k, tags, parse  # converges in the kth iteration
+        
         y = compute_indicators(tags, tagset)
         z = compute_indicators(parse_tags, tagset)
-        step_size += 0.5
+        k += 1
+        step_size = 1.0/k
         update(y, z, u, step_size)
 
-        k += 1
     return -1, tags, parse # does not converge
 
 if __name__ == "__main__":
     #print "reading pcfg..."
-    prob, pcfg_b, nonterms, start = hw3_utils.get_pcfg(sys.argv[1])
+    pcfg_u, pcfg, preterms, start = hw3_utils.get_pcfg(sys.argv[1])
 
     # print "reading hmm..."
     trans_file = sys.argv[2]
@@ -100,21 +103,29 @@ if __name__ == "__main__":
     parsefile = open("candidate_parses_dev2.out", "w")
     posfile = open("candidate_postags_dev2.out", "w")
     
-
+    print "--------------------------------------------------------------------"
+    totaldiff = 0
     for sentence in sentences:
-        if True: #len(sentence) <= 10:
-            print sentences.index(sentence), ": ", sentence, "\n"
-            k, tags, parse = run(sentence, tagset, nonterms, start, hmm, prob, pcfg_b)
+        if True:#len(sentence) <= 10:
+            i = sentences.index(sentence)
+            start_time = time()
+            print i, ": size= ", len(sentence), "\n"
+            k, tags, parse = run(sentence, tagset, preterms, start, hmm, pcfg, pcfg_u)
             if k == -1:
                 print "does not converge"
-                parsefile.write('\n')
-                posfile.write('\n')
             else:
-                parsefile.write(parse + '\n')
-                for tag in tags:
-                    posfile.write(tag + ' ')
-                posfile.write('\n')
+                print "converges in ", k, "iterations"    
+            
+            parsefile.write(parse + '\n')
+            for tag in tags:
+                posfile.write(tag + ' ')
+            posfile.write('\n')
+            
+            end_time = time()
+            diff = -start_time + end_time
+            print diff
+            totaldiff += diff 
             print "------------------------------------------------------------------------------------------------------------"
     parsefile.close()
     posfile.close()
-
+    print "total time=", totaldiff/60, "mins"
