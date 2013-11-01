@@ -100,8 +100,8 @@ if __name__ == "__main__":
     sentences = hw3_utils.get_sentences(sys.argv[4])
 
     #print "parsing using cky..."
-    parsefile = open("candidate_parses_dev2.out", "w")
-    posfile = open("candidate_postags_dev2.out", "w")
+    parsefile = open("candidate_parses_test2.out", "w")
+    posfile = open("candidate_postags_test2.out", "w")
     
     print "--------------------------------------------------------------------"
     totaldiff = 0
