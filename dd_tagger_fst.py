@@ -9,7 +9,7 @@ Created on Oct 15, 2013
 '''
 
 from collections import defaultdict
-import utils, cky, viterbi, fst_viterbi
+import utils, cky, viterbi, fst_search
 
 
 def init_dd_param(u, n, tagset):
@@ -23,8 +23,8 @@ Executes the dual decomposition algorithm
 Note here that the nonterminals are more in number than the tags
 '''
 def run(sentence, tagset, hmm_prob):
-    max_iterations = 50 
-    step_size = 1000
+    max_iterations = 500
+    step_size = 100
 
     n = len(sentence)
 
@@ -33,26 +33,27 @@ def run(sentence, tagset, hmm_prob):
  
     k = 0 # number of iterations
     while k < max_iterations:
-       
-       if k == 0:
-          best_tags = viterbi.run(sentence, tagset, hmm_prob, None)
-       tags2 = fst_viterbi.run(tagset, best_tags, u)
-       
        tags1 = viterbi.run(sentence, tagset, hmm_prob, u)
+      
        if k == 0:
-           print "initial tags:"
+          best_tags = tags1
+       tags2 = fst_search.run(tagset, best_tags, u)
+       
+#       tags1 = viterbi.run(sentence, tagset, hmm_prob, u)
+       #if k == 0:
+           #print "initial tags:", best_tags 
        #print "iteration ", k
        #print tags2, ":fst_tagger"
        #print tags1, ":hmm_tagger"
               
        if agree(tags1, tags2): 
-           return k, tags1, tags2  # converges in the kth iteration
+           return best_tags, k, tags1, tags2  # converges in the kth iteration
        y = compute_indicators(tags1, tagset)
        z = compute_indicators(tags2, tagset)
        update(y, z, u, step_size)
 
        k += 1
-    return -1, tags1, tags2 # does not converge
+    return best_tags, -1, tags1, tags2 # does not converge
 
 def compute_indicators(tags, labelset):
     y = defaultdict()
