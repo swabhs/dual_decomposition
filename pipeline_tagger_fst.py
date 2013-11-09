@@ -17,7 +17,7 @@ def execute(dataset, hmm_file, tag_file):
     hmm, tagset = hmm_utils.get_param_tagset(hmm_file, tag_file)
 
     print "reading dev data..."
-    treebank = utils.read_parses_no_indent(dataset)
+    test_sentences, test_tags = utils.get_tagging_data(dataset, '', '')
 
     i = 0
     converges = 0

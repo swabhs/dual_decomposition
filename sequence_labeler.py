@@ -78,16 +78,7 @@ def write_hmm_params(emission, transition, tag_counts):
 Replaces all emissions with frequency <= 5 with the word
 -RARE-
 '''
-def smooth_emission(emission_counts, tag_counts):
-    # find lowest count of all tags (where to set the threshold for -RARE-)
-#    lowest = defaultdict()
-#    for tag in tags:
-#        lowest[tag] = 100000
-#    for key, val in emission_counts.iteritems():
-#        tag, word = key.split('~>')
-#        if lowest[tag] > val:
-#            lowest[tag] = val
-#    print lowest
+def smooth_emission(emission_counts): 
     e_counts = defaultdict()
     for key, val in emission_counts.iteritems():
         if val <= 5:
@@ -100,14 +91,18 @@ def smooth_emission(emission_counts, tag_counts):
         else:
             e_counts[key] = val
     
-#    for tag, count in tag_counts.iteritems():
-#        if tag == '*' or tag == 'STOP':
-#            continue
-#        key = tag + '~>RARE'
-#        if key not in e_counts:
-#            e_counts[key] = 5
-#            tag_counts[tag] += 5
     return e_counts
+
+def write_for_java(emission_counts, transition_counts):
+    counts = open("pos.counts", "w")
+    emission_counts = smooth_emission(emission_counts)
+    for em, count in emission_counts.iteritems():
+        tag, terminal = em.split('~>')
+        counts.write(str(count)+ " WORDTAG "+ tag+ " "+ terminal+ "\n")
+    for trans, count in transition_counts.iteritems():
+        prev_tag, current_tag = trans.split("~>")
+        counts.write(str(count)+ " 2-GRAM "+ prev_tag+ " "+ current_tag+ "\n")
+    counts.close() 
 
 def learn(parses):
     emission_counts = defaultdict()
@@ -117,15 +112,16 @@ def learn(parses):
     for parse in parses:
         parse_list = utils.make_parse_list(parse)
         update_counts(parse_list, emission_counts, transition_counts, tag_counts)
-
 #   I'm not doing smoothing because smoothing gives very bad results
 #   Every -RARE- word gets assigned to the FW tag, and then all following tags are FW. 
 #   Because FW->-RARE- and FW->FW have high probabilities
 #   emission_counts = smooth_emission(emission_counts, tag_counts) # I don't like this! Why won't u work otherwise, Python?
+
     set_hmm_params(emission_counts, transition_counts, tag_counts)
     check_if_prob_dist(emission_counts)
     check_if_prob_dist(transition_counts)
     write_hmm_params(emission_counts, transition_counts, tag_counts)
+    #write_for_java(emission_counts, transition_counts, tag_counts)
     return emission_counts, transition_counts
 
 if __name__ == "__main__":

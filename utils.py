@@ -119,3 +119,29 @@ def get_vocab_size():
         else:
            break
     return v_size
+
+'''
+Writes sentences and pos tags from a treebank into a file with
+sentences and tags in different lines, and to another file with a word
+and its tag in a line.
+'''
+def get_tagging_data(treebank, st_filename, wt_filename):
+    sfile = open(st_filename, 'w')
+    tfile = open(wt_filename, 'w')
+    
+    parses = read_parses_no_indent(treebank)
+    for parse in parses:
+        parse_list = make_parse_list(parse)
+        sentence, truetag = get_terminals_tags(parse_list)
+        sent = ''
+        tags = ''
+
+        for i in xrange(0, len(sentence)):
+            tfile.write(sentence[i] + ' ' + truetag[i] + '\n')
+            sent += sentence[i] + ' '
+            tags += truetag[i] + ' '
+        sfile.write(sent + '\n')
+        sfile.write(tags + '\n\n')
+        tfile.write('\n')
+    sfile.close()
+    tfile.close()
