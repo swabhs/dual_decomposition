@@ -8,11 +8,12 @@ Created on Sep 21, 2013
 @author: swabha 
 ''' 
 from __future__ import division
+import sys, utils, operator
 from collections import defaultdict
-import sys, operator
-import data_reader
 
-def update_counts(terminals, tags, emission_counts, transition_counts, tag_counts):
+def update_counts(parse_list, emission_counts, transition_counts, tag_counts):
+    terminals, tags = utils.get_terminals_tags(parse_list)
+
     # updating emission counts
     for i in xrange(0,len(terminals)):
         emission_key = tags[i] + '~>' + terminals[i]
@@ -39,7 +40,7 @@ def update_counts(terminals, tags, emission_counts, transition_counts, tag_count
         else:
             tag_counts[tag] = 1
 
-def test_for_prob_dist(param):
+def check_if_prob_dist(param):
     tags = defaultdict()
     for par, prob in param.iteritems():
         tag, word = par.split('~>')
@@ -103,33 +104,29 @@ def write_for_java(emission_counts, transition_counts):
         counts.write(str(count)+ " 2-GRAM "+ prev_tag+ " "+ current_tag+ "\n")
     counts.close() 
 
-def learn(sentences, tagseqs):
-    em_counts = defaultdict()
-    trans_counts = defaultdict()
+def learn(parses):
+    emission_counts = defaultdict()
+    transition_counts = defaultdict()
     tag_counts = defaultdict()
 
-    for i in range(len(sentences)):
-        sentence = sentences[i]
-        tagseq = tagseqs[i]
-        update_counts(sentence, tagseq, em_counts, trans_counts, tag_counts)
+    for parse in parses:
+        parse_list = utils.make_parse_list(parse)
+        update_counts(parse_list, emission_counts, transition_counts, tag_counts)
 #   I'm not doing smoothing because smoothing gives very bad results
 #   Every -RARE- word gets assigned to the FW tag, and then all following tags are FW. 
 #   Because FW->-RARE- and FW->FW have high probabilities
+#   emission_counts = smooth_emission(emission_counts, tag_counts) # I don't like this! Why won't u work otherwise, Python?
 
-#   em_counts = smooth_emission(emission_counts, tag_counts)
-#   I don't like this! Why won't u work otherwise, Python?
-
-
-    set_hmm_params(em_counts, trans_counts, tag_counts)
-    test_for_prob_dist(em_counts)
-    test_for_prob_dist(trans_counts)
-    write_hmm_params(em_counts, trans_counts, tag_counts)
-    #write_for_java(em_counts, trans_counts, tag_counts)
-    return em_counts, trans_counts
+    set_hmm_params(emission_counts, transition_counts, tag_counts)
+    check_if_prob_dist(emission_counts)
+    check_if_prob_dist(transition_counts)
+    write_hmm_params(emission_counts, transition_counts, tag_counts)
+    #write_for_java(emission_counts, transition_counts, tag_counts)
+    return emission_counts, transition_counts
 
 if __name__ == "__main__":
-    rare_sent_tags = sys.argv[1]
-    sentences, tagseqs = data_reader.read_tagging_data(rare_sent_tags)
-    emission, transition = learn(sentences, tagseqs)
+    treebank = sys.argv[1]
+    parses = utils.read_parses_no_indent(treebank)
+    emission, transition = learn(parses)
 
 

@@ -9,7 +9,7 @@ Created on Oct 15, 2013
 '''
 
 from collections import defaultdict
-import utils, cky, viterbi, fst_search
+import utils, cky, viterbi, fst_search, math
 
 
 def init_dd_param(u, n, tagset):
@@ -24,28 +24,22 @@ Note here that the nonterminals are more in number than the tags
 '''
 def run(sentence, tagset, hmm_prob):
     max_iterations = 500
-    step_size = 100
+    #step_size = 100
 
     n = len(sentence)
 
     u = defaultdict() # dual decomposition parameter
     init_dd_param(u, n, tagset)
  
-    k = 0 # number of iterations
-    while k < max_iterations:
+    k = 1 # number of iterations
+    while k <= max_iterations:
+       step_size = 100 / math.sqrt(k)
        tags1 = viterbi.run(sentence, tagset, hmm_prob, u)
       
-       if k == 0:
+       if k == 1:
           best_tags = tags1
        tags2 = fst_search.run(tagset, best_tags, u)
        
-#       tags1 = viterbi.run(sentence, tagset, hmm_prob, u)
-       #if k == 0:
-           #print "initial tags:", best_tags 
-       #print "iteration ", k
-       #print tags2, ":fst_tagger"
-       #print tags1, ":hmm_tagger"
-              
        if agree(tags1, tags2): 
            return best_tags, k, tags1, tags2  # converges in the kth iteration
        y = compute_indicators(tags1, tagset)
@@ -74,8 +68,6 @@ def update(indi1, indi2, u, step_size):
     for i in xrange(0, len(indi1)):
         for t in u[i].iterkeys():
             u[i][t] -= (indi2[i][t] - indi1[i][t])*step_size
-            #print u[i][t],
-        #print
 '''
 Check if two tag sequences agree
 '''

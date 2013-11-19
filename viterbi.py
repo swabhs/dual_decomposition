@@ -24,18 +24,21 @@ def get_local_score(word, prev_tag, tag, hmm):
     if emi in hmm:
         escore = hmm[emi]
     else:
-        emi = 'em:' + tag + '~>-RARE-'
-#        if emi in hmm:
-#        escore = hmm[emi]
-#        else:
-        escore = float("-inf")
+        emi = 'em:' + tag + '~>_RARE_'
+        if emi in hmm:
+            escore = hmm[emi]
+        else:
+            escore = float("-inf")
     return tscore + escore
 
 def run(sentence, labelset, weights, dd_u):
-    
     n = len(sentence)
     pi = []
     bp = []
+
+    # bit of a hack
+    if '*' not in labelset:
+        labelset.append('*')
 
     #print 'initializing...'
     for i in xrange(0, n+1):
