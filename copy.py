@@ -13,16 +13,16 @@ from first_smooth import replace_test
 
 def tagprint(sequence):
     for element in sequence:
-        print element,
+        print element, " ",
     print
 
 def execute(dataset, hmm_file, tag_file):
-    #sys.stderr.write("loading learnt parameters...\n")
+    sys.stderr.write("loading learnt parameters...\n")
     hmm, tagset = hmm_utils.get_param_tagset(hmm_file, tag_file)
 
-    #sys.stderr.write("reading dev data...\n")
-    ts, test_tags = data_reader.read_tagging_data(dataset)
-    test_sentences = replace_test(ts, hmm, tagset)
+    sys.stderr.write("reading dev data...\n")
+    test_sentences, test_tags = data_reader.read_tagging_data(dataset)
+    test_sentences = replace_test(test_sentences, hmm, tagset)
 
     i = 0
     converges = 0
@@ -36,7 +36,7 @@ def execute(dataset, hmm_file, tag_file):
             truetags = test_tags[test_sentences.index(sentence)]
             
             sys.stderr.write('\n' + str(i)+ '\n')
-            tagprint(ts[i-1])
+            tagprint(test_sents_not_rare[test_sentences.index(sentence)])
             best_tags, num_iterations, tags1, tags2 = dd_tagger_fst.run(sentence, tagset, hmm)
            
             tagprint(best_tags)
@@ -49,8 +49,9 @@ def execute(dataset, hmm_file, tag_file):
                 converges += 1
                 avg_iterations += num_iterations
             else:
+                print
                 sys.stderr.write("does not converge :(\n")
-            #tagprint(truetags)
+            tagprint(truetags)
             print
         #if i==100:
             #break     

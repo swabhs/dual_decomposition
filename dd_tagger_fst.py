@@ -23,7 +23,7 @@ Executes the dual decomposition algorithm
 Note here that the nonterminals are more in number than the tags
 '''
 def run(sentence, tagset, hmm_prob):
-    max_iterations = 500
+    max_iterations = 100
     #step_size = 100
 
     n = len(sentence)

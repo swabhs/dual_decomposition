@@ -14,7 +14,7 @@ import data_reader
 
 def update_counts(terminals, tags, emission_counts, transition_counts, tag_counts):
     # updating emission counts
-    for i in xrange(0,len(terminals)):
+    for i in range(len(terminals)):
         emission_key = tags[i] + '~>' + terminals[i]
         if emission_key in emission_counts:
             emission_counts[emission_key] += 1
@@ -59,8 +59,12 @@ def set_hmm_params(emission, transition, tag_counts):
     for tr, count in transition.iteritems():
         prev_tag, tag = tr.split('~>')
         transition[tr] = count/tag_counts[prev_tag]
+    
+    test_for_prob_dist(em_counts)
+    test_for_prob_dist(trans_counts)
 
 def write_hmm_params(emission, transition, tag_counts):
+    set_hmm_params(emission, transition, tag_counts)
     outfile = open('hmm.txt', 'w')
     for em, count in emission.iteritems():
         outfile.write('em:' + em + ' ' + str(emission[em]) + '\n')
@@ -72,6 +76,21 @@ def write_hmm_params(emission, transition, tag_counts):
     for tag in tag_counts.iterkeys():
         outfile2.write(tag + '\n')
     outfile2.close()
+
+'''
+Writes the hmm probabilities in a format readable by my implementation of 
+Liang Huang's algorithm
+'''
+def write_for_java(emission_counts, transition_counts):
+    counts = open("pos.counts", "w")
+    #emission_counts = smooth_emission(emission_counts)
+    for em, count in emission_counts.iteritems():
+        tag, terminal = em.split('~>')
+        counts.write(str(count)+ " WORDTAG "+ tag+ " "+ terminal+ "\n")
+    for trans, count in transition_counts.iteritems():
+        prev_tag, current_tag = trans.split("~>")
+        counts.write(str(count)+ " 2-GRAM "+ prev_tag+ " "+ current_tag+ "\n")
+    counts.close() 
 
 '''
 Replaces all emissions with frequency <= 5 with the word
@@ -92,16 +111,6 @@ def smooth_emission(emission_counts):
     
     return e_counts
 
-def write_for_java(emission_counts, transition_counts):
-    counts = open("pos.counts", "w")
-    emission_counts = smooth_emission(emission_counts)
-    for em, count in emission_counts.iteritems():
-        tag, terminal = em.split('~>')
-        counts.write(str(count)+ " WORDTAG "+ tag+ " "+ terminal+ "\n")
-    for trans, count in transition_counts.iteritems():
-        prev_tag, current_tag = trans.split("~>")
-        counts.write(str(count)+ " 2-GRAM "+ prev_tag+ " "+ current_tag+ "\n")
-    counts.close() 
 
 def learn(sentences, tagseqs):
     em_counts = defaultdict()
@@ -120,11 +129,8 @@ def learn(sentences, tagseqs):
 #   I don't like this! Why won't u work otherwise, Python?
 
 
-    set_hmm_params(em_counts, trans_counts, tag_counts)
-    test_for_prob_dist(em_counts)
-    test_for_prob_dist(trans_counts)
-    write_hmm_params(em_counts, trans_counts, tag_counts)
-    #write_for_java(em_counts, trans_counts, tag_counts)
+#    write_hmm_params(em_counts, trans_counts, tag_counts)
+    write_for_java(em_counts, trans_counts)
     return em_counts, trans_counts
 
 if __name__ == "__main__":
