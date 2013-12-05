@@ -9,7 +9,7 @@ Created on Sep 12, 2013
 
 import math, sys
 import data_reader, evaluate, hmm_utils
-from first_smooth import replace_test
+from smoothing import replace_test
 from collections import defaultdict
 
 def get_local_score(word, prev_tag, tag, hmm):
@@ -86,6 +86,7 @@ def run(sentence, labelset, weights, dd_u):
         if score > max_score:
             max_score = score
             best_last_label = w
+    print max_score
     tags.append(best_last_label)
 
     # tag extraction

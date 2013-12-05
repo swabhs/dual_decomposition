@@ -9,7 +9,7 @@ Created on Oct 15, 2013
 
 import sys,re, time
 import data_reader, hmm_utils, evaluate, viterbi, dd_tagger_fst
-from first_smooth import replace_test
+from smoothing import replace_test
 
 def tagprint(sequence):
     for element in sequence:

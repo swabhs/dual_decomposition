@@ -42,30 +42,43 @@ def run(labelset, best_sequence, dd_u):
     for k in xrange(1, n+1):
         actual_best_label = best_sequence[k-1]
 
-        sorted_dd_u = sorted(dd_u[k-1].iteritems(), key = operator.itemgetter(1)) 
-        best_label = sorted_dd_u[-1][0]
+        first, second = get_top_two(dd_u[k-1])
+        best_label = first
+        #sorted_dd_u = sorted(dd_u[k-1].iteritems(), key = operator.itemgetter(1)) 
+        #best_label = sorted_dd_u[-1][0]
         best_score = dd_u[k-1][best_label]
 
         if actual_best_label != best_label:
-#            print actual_best_label, "actual", best_label, "best"
-            #print sorted_dd_u
             next_best_label = best_label
             next_best_score = best_score
         else:
             # compare the actual_best with the 2nd best label, and store the backpointers accordingly
-            next_best_label = sorted_dd_u[-2][0]
+            #next_best_label = sorted_dd_u[-2][0]
+            next_best_label = second
             next_best_score = dd_u[k-1][next_best_label]
- #           print k-1, next_best_label
 	if (pi_false[-1] + best_score > pi_true[-1] + next_best_score and k != 1):
             bp_false.append(best_label) 
 	    pi_false.append(pi_false[-1] + best_score)
-  #          print "pi_false is better", pi_false[-1], pi_true[-1] + next_best_score
 	else:
 	    bp_false = best_sequence[:k-1]
 	    bp_false.append(next_best_label)
 	    pi_false.append(pi_true[-1] + next_best_score)
-   #         print "pi_true" , pi_false[-1], pi_false[-1] + best_score
         
         pi_true.append(pi_true[-1] + dd_u[k-1][actual_best_label])
     return bp_false
 
+'''
+Given a map finds the keys of the two highest values in the map
+'''
+def get_top_two(inp_map):
+    first = inp_map.keys()[0]
+    second = inp_map.keys()[1]
+    
+    for k,v in inp_map.iteritems():
+        if v > inp_map[first]:
+            first = k
+            second = first
+        elif v < inp_map[first] and v > inp_map[second]:
+            second = k
+        
+    return first, second
