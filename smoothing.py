@@ -52,6 +52,25 @@ def replace_test(sentences, hmm, tagset):
         replaced_sentences.append(sent_with_rare)
     return replaced_sentences
 
+'''
+Replaces all emissions with frequency <= 5 with the word
+-RARE-
+'''
+def smooth_emission(emission_counts):
+    e_counts = defaultdict()
+    for key, val in emission_counts.iteritems():
+        if val <= 5:
+            tag, word = key.split('~>')
+            new_key = tag + '~>-RARE-'
+            if new_key in e_counts:
+                e_counts[new_key] += val
+            else:
+                e_counts[new_key] = val
+        else:
+            e_counts[key] = val
+
+    return e_counts
+
 if __name__=='__main__':
     replace(sys.argv[1])
     #hmm={'em:A~>apple': 0.0, 'em:A~>elephant':0, 'em:B~>boy':0}

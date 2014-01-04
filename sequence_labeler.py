@@ -92,26 +92,6 @@ def write_for_java(emission_counts, transition_counts):
         counts.write(str(count)+ " 2-GRAM "+ prev_tag+ " "+ current_tag+ "\n")
     counts.close() 
 
-'''
-Replaces all emissions with frequency <= 5 with the word
--RARE-
-'''
-def smooth_emission(emission_counts): 
-    e_counts = defaultdict()
-    for key, val in emission_counts.iteritems():
-        if val <= 5:
-            tag, word = key.split('~>') 
-            new_key = tag + '~>-RARE-'
-            if new_key in e_counts:
-                e_counts[new_key] += val
-            else:
-                e_counts[new_key] = val
-        else:
-            e_counts[key] = val
-    
-    return e_counts
-
-
 def learn(sentences, tagseqs):
     em_counts = defaultdict()
     trans_counts = defaultdict()
@@ -121,13 +101,6 @@ def learn(sentences, tagseqs):
         sentence = sentences[i]
         tagseq = tagseqs[i]
         update_counts(sentence, tagseq, em_counts, trans_counts, tag_counts)
-#   I'm not doing smoothing because smoothing gives very bad results
-#   Every -RARE- word gets assigned to the FW tag, and then all following tags are FW. 
-#   Because FW->-RARE- and FW->FW have high probabilities
-
-#   em_counts = smooth_emission(emission_counts, tag_counts)
-#   I don't like this! Why won't u work otherwise, Python?
-
 
 #    write_hmm_params(em_counts, trans_counts, tag_counts)
     write_for_java(em_counts, trans_counts)

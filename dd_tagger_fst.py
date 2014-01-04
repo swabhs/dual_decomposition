@@ -20,10 +20,9 @@ def init_dd_param(u, n, tagset):
     
 '''
 Executes the dual decomposition algorithm
-Note here that the nonterminals are more in number than the tags
 '''
 def run(sentence, tagset, hmm_prob):
-    max_iterations = 100
+    max_iterations = 1000
     #step_size = 100
 
     n = len(sentence)
@@ -33,9 +32,12 @@ def run(sentence, tagset, hmm_prob):
  
     k = 1 # number of iterations
     while k <= max_iterations:
-       step_size = 100 / math.sqrt(k)
+       step_size = 5.4 / math.sqrt(k)
+       print "\niteration:", k
+       print "-------------------------------"
+       #print "step size = ", "{0:.2f}".format(step_size)
        tags1 = viterbi.run(sentence, tagset, hmm_prob, u)
-      
+       #print "vit output:", ' '.join(tags1)
        if k == 1:
           best_tags = tags1
        tags2 = fst_search.run(tagset, best_tags, u)
@@ -49,8 +51,9 @@ def run(sentence, tagset, hmm_prob):
        k += 1
     return best_tags, -1, tags1, tags2 # does not converge
 
+# can be made faster, use dictionary shallow copying
 def compute_indicators(tags, labelset):
-    y = defaultdict()
+    ind = defaultdict()
     for i in xrange(0, len(tags)):
         z = defaultdict()
         for t in labelset:
@@ -58,8 +61,8 @@ def compute_indicators(tags, labelset):
                 z[t] = 1
             else:
                 z[t] = 0
-        y[i] = z
-    return y
+        ind[i] = z
+    return ind
 
 '''
 Dual decomposition update
@@ -67,7 +70,7 @@ Dual decomposition update
 def update(indi1, indi2, u, step_size):
     for i in xrange(0, len(indi1)):
         for t in u[i].iterkeys():
-            u[i][t] -= (indi2[i][t] - indi1[i][t])*step_size
+            u[i][t] -= -(indi2[i][t] - indi1[i][t])*step_size
 '''
 Check if two tag sequences agree
 '''

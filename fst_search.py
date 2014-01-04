@@ -12,6 +12,8 @@ Created on Nov 4th, 2013
 import math, sys, utils, evaluate, operator
 from collections import defaultdict
 
+allowed_error = 0.00001
+
 '''
 Depending on the dd_u parameters, finds the best sequence
 which is not equal to the best_sequence
@@ -32,25 +34,27 @@ def run(labelset, best_sequence, dd_u):
     pi_true.append(0.0)
     pi_false.append(0.0)
 
+#    print "dual weights before FST search: row = position, column = tag"
+#    print '\t'.join(dd_u[0].keys())
 #    for pos, tags in dd_u.iteritems():
 #        for tag, value in tags.iteritems():
-#            print value,
+#            print "{0:.2f}".format(value) + "\t",
 #        print
-#    print
 
     # print 'main viterbi algorithm ...'
     for k in xrange(1, n+1):
         actual_best_label = best_sequence[k-1]
+        actual_best_score = dd_u[k-1][actual_best_label]
 
         first, second = get_top_two(dd_u[k-1])
         best_label = first
-        #sorted_dd_u = sorted(dd_u[k-1].iteritems(), key = operator.itemgetter(1)) 
-        #best_label = sorted_dd_u[-1][0]
         best_score = dd_u[k-1][best_label]
 
-        if actual_best_label != best_label:
+        if abs(actual_best_score - best_score) > allowed_error:
             next_best_label = best_label
             next_best_score = best_score
+            print "actual =", dd_u[k-1][actual_best_label], "now =", dd_u[k-1][best_label]
+            break
         else:
             # compare the actual_best with the 2nd best label, and store the backpointers accordingly
             #next_best_label = sorted_dd_u[-2][0]
@@ -65,20 +69,39 @@ def run(labelset, best_sequence, dd_u):
 	    pi_false.append(pi_true[-1] + next_best_score)
         
         pi_true.append(pi_true[-1] + dd_u[k-1][actual_best_label])
+    print "fst output: " , ' '.join(bp_false)
+    print "fst score = " , "{0:.2f}".format(pi_false[-1])
+
     return bp_false
 
 '''
 Given a map finds the keys of the two highest values in the map
 '''
-def get_top_two(inp_map):
-    first = inp_map.keys()[0]
-    second = inp_map.keys()[1]
-    
-    for k,v in inp_map.iteritems():
-        if v > inp_map[first]:
-            first = k
+def get_top_two(imap):
+    if imap.values()[0] > imap.values()[1] + allowed_error:
+        first = imap.keys()[0]
+        second = imap.keys()[1]
+    else:
+        first = imap.keys()[1]
+        second = imap.keys()[0]
+        
+    rest = imap.keys()[2:]
+
+    for k in rest:
+        v = imap[k]
+        cond1 = v > imap[first] + allowed_error # current value more than best
+        cond2 = abs(v - imap[first]) < allowed_error # current value same as best
+        cond3 = v > imap[second] + allowed_error # current value more than 2ndbest
+
+        if cond1 or cond2:
             second = first
-        elif v < inp_map[first] and v > inp_map[second]:
+            first = k
+        elif cond3:
             second = k
         
     return first, second
+
+
+if __name__ == "__main__":
+    i = {'a':0.000, 'b':0.00, 'c':0.00, 'd':0.00, 'e':0.000}
+    print get_top_two(i)

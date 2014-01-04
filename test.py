@@ -72,6 +72,7 @@ def filter_tagset(sent_with_rare, tagset, hmm):
                 taglist.append(tag)
         tagmap[pos] = taglist
         size *= len(taglist)
+        print ' '.join(taglist)
         pos -=1 
     sys.stderr.write("total: " + str(pow(len(tagset), len(sent_with_rare))) + "\n" + str(size)+ "\n")
     return tagmap
@@ -81,29 +82,13 @@ def main():
     tag_file = sys.argv[2]
     hmm, tagset = get_param_tagset(hmm_file, tag_file)
 
-    sentence = "The new three-year contracts , which replace ones that expired Aug. 5 , cover 41,000 Bell Atlantic employees .".split()
-    #sentence = "By lunchtime , the selling was at near-panic fever .".split(' ')
-    sentence = replace_test([sentence], hmm, tagset)[0]
+    sentence = "We 're about to see if advertising works ."
+    sentence = replace_test([sentence.split(' ')], hmm, tagset)[0]
+    sys.stderr.write(' '.join(sentence) + "\n")
+
     tagmap = filter_tagset(sentence, tagset, hmm)
-    #tagseq = "IN NN , DT NN VBD IN JJ NN .".split(' ')
     tagseqs = find_all_tagseqs(len(sentence), tagmap, "", [])
 
-#    resultmap = {}
-#    f = open("tagseqs10.out", 'r')
-#    i = 0
-#    while 1:
-#       line = f.readline()
-#       if not line:
-#           break
-#       i += 1
-#       sys.stderr.write(str(i)+"\r")
-#       tagseq = line.strip().split(' ')
-#       score = find_log_prob(hmm, tagset, sentence, tagseq)
-#       if score != '':
-#           key = ' '.join(tagseq)
-#           resultmap[key] = score
-#    f.close()
-#
     resultmap = {}
     for tagline in tagseqs:
         tagseq = tagline.strip().split(' ')
@@ -113,7 +98,7 @@ def main():
             resultmap[key] = score
     sorted_x = sorted(resultmap.iteritems(), key=operator.itemgetter(1))
     for k, v in sorted_x:
-        print k,v
+        print k,"{0:.2f}".format(v)
   
 
 if __name__ == "__main__":

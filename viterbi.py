@@ -86,7 +86,6 @@ def run(sentence, labelset, weights, dd_u):
         if score > max_score:
             max_score = score
             best_last_label = w
-    print max_score
     tags.append(best_last_label)
 
     # tag extraction
@@ -95,7 +94,9 @@ def run(sentence, labelset, weights, dd_u):
         tags.append(bp[k+1][last_tag])
     
     tags = list(reversed(tags))
-    
+    print "viterbi output:", ' '.join(tags)
+    print "viterbi score = ", "{0:.2f}".format(max_score)
+     
     return tags
 
 if __name__ == "__main__":
