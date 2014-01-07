@@ -26,10 +26,10 @@ def execute(dataset, hmm_file, tag_file):
  
     fst_acc = 0
     best_acc = 0
-
+    wrong = 0
     for sentence in test_sentences:
        
-        if len(sentence) > 0 :#True: #len(tree) < 100:
+        if True:
             i += 1
             truetags = test_tags[test_sentences.index(sentence)]
             
@@ -37,6 +37,10 @@ def execute(dataset, hmm_file, tag_file):
             print ' '.join(ts[i-1])
             
             best_tags, num_iterations, tags1, tags2 = dd_tagger_fst.run(sentence, tagset, hmm)
+            if tags2 == best_tags:
+                print "YOU ARE WRONG!"
+                wrong += 1
+                #break
             if num_iterations != -1:
                 facc = evaluate.accuracy(truetags, tags2)
                 #sys.stderr.write("fst tagger accuracy = " + str(facc) + "\n")
@@ -51,21 +55,22 @@ def execute(dataset, hmm_file, tag_file):
                 avg_iterations += num_iterations
             else:
                 sys.stderr.write("does not converge :(\n")
-            print "1 best: ", ' '.join(best_tags)
-            print "2 best: ", ' '.join(tags2)
-            print "gold  : ", ' '.join(truetags)
+            print ' '.join(best_tags)
+            print ' '.join(tags2)
+            #print "gold  : ", ' '.join(truetags)
             print
             
-            if i == 100:
-                break
+            #if i == 10:
+                #break
     sys.stderr.write("\nsystem performance\n--------------------\n")
     sys.stderr.write("\naverage accuracy of 2nd best: " + str(fst_acc/converges) +"\n")
+    sys.stderr.write("\ngoes wrong: " + str(wrong/converges) +"\n")
     sys.stderr.write("average accuracy of best: " + str(best_acc/converges) +"\n")
     
-    #sys.stderr.write("\nsystem efficiency\n---------------------\n")
-    #sys.stderr.write("\n" + str(avg_iterations/converges) + " iterations on average\n")
-    #sys.stderr.write(str(converges*100/i) +  " % convergence\n")
-    #sys.stderr.write("time_taken = "+ str(time.time() - start_time) + "\n")
+    sys.stderr.write("\nsystem efficiency\n---------------------\n")
+    sys.stderr.write("\n" + str(avg_iterations/converges) + " iterations on average\n")
+    sys.stderr.write(str(converges*100/i) +  " % convergence\n")
+    sys.stderr.write("time_taken = "+ str(time.time() - start_time) + "\n")
 
 if __name__ == "__main__":
     test_sent_tags = sys.argv[1]

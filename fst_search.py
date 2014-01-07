@@ -53,8 +53,7 @@ def run(labelset, best_sequence, dd_u):
         if abs(actual_best_score - best_score) > allowed_error:
             next_best_label = best_label
             next_best_score = best_score
-            print "actual =", dd_u[k-1][actual_best_label], "now =", dd_u[k-1][best_label]
-            break
+            #print "actual =", dd_u[k-1][actual_best_label], "now =", dd_u[k-1][best_label]
         else:
             # compare the actual_best with the 2nd best label, and store the backpointers accordingly
             #next_best_label = sorted_dd_u[-2][0]
@@ -69,10 +68,17 @@ def run(labelset, best_sequence, dd_u):
 	    pi_false.append(pi_true[-1] + next_best_score)
         
         pi_true.append(pi_true[-1] + dd_u[k-1][actual_best_label])
-    print "fst output: " , ' '.join(bp_false)
-    print "fst score = " , "{0:.2f}".format(pi_false[-1])
+    #print "fst output: " , ' '.join(bp_false)
+    fst_score = (pi_false[-1])
+    #get_fsa_score(bp_false, dd_u)
+    return bp_false, fst_score
 
-    return bp_false
+def get_fsa_score(seq, dd_u):
+    score = 0.0
+    for k in range(len(seq)):
+        tag = seq[k]
+        score += dd_u[k][tag]
+    print "tot fsa score =", score
 
 '''
 Given a map finds the keys of the two highest values in the map

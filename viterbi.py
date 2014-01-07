@@ -64,11 +64,11 @@ def run(sentence, labelset, weights, dd_u):
                 if dd_u == None:
                     score = pi[k-1][w] + local_score
                 else:
-                    score = pi[k-1][w] + local_score + dd_u[k-1][w] # dd factor
+                    score = pi[k-1][w] + local_score - dd_u[k-1][u] # dd factor
                 if score > max_score:
                     max_score = score
                     argmax = w
-            pi[k][u] = max_score
+            pi[k][u] = max_score    
             bp[k][u] = argmax
 #        print k
 #        for w in labelset:
@@ -82,7 +82,8 @@ def run(sentence, labelset, weights, dd_u):
     for w in labelset:
         local_score = get_local_score("", w, "STOP", weights)
         
-        score = pi[n][w] + local_score
+        score = pi[n][w] + local_score# - dd_u[n-1][w]
+
         if score > max_score:
             max_score = score
             best_last_label = w
@@ -94,11 +95,32 @@ def run(sentence, labelset, weights, dd_u):
         tags.append(bp[k+1][last_tag])
     
     tags = list(reversed(tags))
-    print "viterbi output:", ' '.join(tags)
-    print "viterbi score = ", "{0:.2f}".format(max_score)
-     
-    return tags
+    #print "viterbi output:", ' '.join(tags)
+    #print "viterbi score = ", "{0:.2f}".format(max_score)
+    hmm_only = get_hmm_only_score(tags, sentence, weights)
+    aug_score = get_aug_hmm(tags, sentence, weights, dd_u)
+    #print "viterbi =", max_score
+    #print "should be", aug_score
+    #TODO: why is max_score different from aug_score?
+    return tags, aug_score, hmm_only
 
+def get_hmm_only_score(seq, sent, hmm):
+    score = 0.0
+    prev = '*'
+    for i in range(len(seq)):
+        tag = seq[i]
+        word = sent[i]
+        score += get_local_score(word, prev, tag, hmm)
+        prev = tag
+    score += get_local_score("", prev, "STOP", hmm)
+    return score
+
+def get_aug_hmm(seq, sent, hmm, dd_u):
+    score = get_hmm_only_score(seq, sent, hmm)
+    for i in range(len(seq)):
+        score -= dd_u[i][seq[i]]
+    return score        
+ 
 if __name__ == "__main__":
     sentences, truetags = data_reader.read_tagging_data(sys.argv[1])
     hmm, tagset = hmm_utils.get_param_tagset(sys.argv[2], sys.argv[3])

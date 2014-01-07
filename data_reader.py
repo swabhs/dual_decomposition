@@ -166,12 +166,12 @@ def get_sentences_new(wtfilename):
     return sentences, tagseqs
 
 if __name__ == "__main__":
-    sentences, tagseqs = get_sentences_new(sys.argv[1])
-    stfilename = "new_dev.sentences_tags"
-    wtfilename = "new_dev.word_tag"
-    write_tagging_data(sentences, tagseqs, stfilename, wtfilename)
-    #dataset = sys.argv[1]
-    #datasetname = sys.argv[2]
+#    sentences, tagseqs = get_sentences_new(sys.argv[1])
+#    stfilename = "new_dev.sentences_tags"
+#    wtfilename = "new_dev.word_tag"
+#    write_tagging_data(sentences, tagseqs, stfilename, wtfilename)
+    dataset = sys.argv[1]
+    datasetname = sys.argv[2]
     # to convert treebank into tagging data
     # treebank is at /mal2/corpora/penn_tb_3.0_preprocessed/train.1.notraces
-    #extract_tagging_data(dataset, datasetname+".sentences_tags", datasetname+".word_tag")
+    extract_tagging_data(dataset, datasetname+".sentences_tags", datasetname+".word_tag")
