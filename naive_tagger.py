@@ -82,7 +82,7 @@ def main():
     tag_file = sys.argv[2]
     hmm, tagset = get_param_tagset(hmm_file, tag_file)
 
-    sentence = "We 're about to see if advertising works ."
+    sentence = "`` We would have to wait until we have collected on those assets before we can move forward , '' he said ."
     sentence = replace_test([sentence.split(' ')], hmm, tagset)[0]
     sys.stderr.write(' '.join(sentence) + "\n")
 
@@ -96,7 +96,7 @@ def main():
         if score != '':
             key = ' '.join(tagseq)
             resultmap[key] = score
-    sorted_x = sorted(resultmap.iteritems(), key=operator.itemgetter(1))
+    sorted_x = sorted(resultmap.iteritems(), key=operator.itemgetter(1))[-10:]
     for k, v in sorted_x:
         print k,"{0:.2f}".format(v)
   

@@ -14,7 +14,7 @@ import sys
 
 def init_dd_param(u, n, tagset):
     for i in xrange(0, n):
-        u[i] = defaultdict()
+        u[i] = {}#defaultdict()
         for t in tagset:
             u[i][t] = 0
     
@@ -27,20 +27,20 @@ def run(sentence, tagset, hmm_prob):
 
     n = len(sentence)
 
-    u = defaultdict() # dual decomposition parameter
+    u = {}#defaultdict() # dual decomposition parameter
     init_dd_param(u, n, tagset)
  
     k = 1 # number of iterations
     while k <= max_iterations:
-       step_size = 5.4 / math.sqrt(k)
-       #print "\niteration:", k
-       #print "-------------------------------"
+       step_size = 1.0 / math.sqrt(k)
+       print "\niteration:", k
+       print "-------------------------------"
        #print "step size = ", "{0:.2f}".format(step_size)
        tags1, aug_hmm_score, hmm_score = viterbi.run(sentence, tagset, hmm_prob, u)
        #print "vit output:", ' '.join(tags1)
        if k == 1:
           best_tags = tags1
-       tags2, fst_score = fst_search.run(tagset, best_tags, u)
+       tags2, fst_score = fst_search.run(best_tags, u)
 
        if agree(tags1, tags2): 
            sys.stderr.write("hmm only = "+ str( hmm_score) + "\n")

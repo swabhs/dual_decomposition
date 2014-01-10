@@ -52,7 +52,7 @@ def run(best, dd_u):
         
         pos += 1
 
-    return bp_false, pi_false[-1]
+    return bp_false, pi_false[-1] 
     
     
 # given a map return the two keys with the highest values
