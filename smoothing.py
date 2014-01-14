@@ -1,7 +1,10 @@
 # /usr/bin/python
 from collections import defaultdict
-import data_reader, sys
+import data_reader, sys, hmm_utils
 
+'''
+Given train data file in word tag format, replaces first occurence of each word with _RARE_
+'''
 def replace(wt_filename):
     seenonce = []
     wt = open(wt_filename, "r")
@@ -72,8 +75,14 @@ def smooth_emission(emission_counts):
     return e_counts
 
 if __name__=='__main__':
-    replace(sys.argv[1])
-    #hmm={'em:A~>apple': 0.0, 'em:A~>elephant':0, 'em:B~>boy':0}
-    #sentences = [['apple'], ['apple', 'boy'], ['cat', 'dog'], ['cat', 'boy']]
-    #tagset=['A','B']
-    #print replace_test(sentences, hmm, tagset)
+    #replace(sys.argv[1])
+    test_sent_tags = sys.argv[1]
+    hmm, tagset = hmm_utils.get_param_tagset(sys.argv[2], sys.argv[3])
+    ts, test_tags = data_reader.read_tagging_data(test_sent_tags)
+    test_sentences = replace_test(ts, hmm, tagset)
+
+    for ts in test_sentences:
+        for word in ts:
+            print word
+        print 
+

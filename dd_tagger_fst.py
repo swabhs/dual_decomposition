@@ -22,7 +22,7 @@ def init_dd_param(u, n, tagset):
 Executes the dual decomposition algorithm
 '''
 def run(sentence, tagset, hmm_prob):
-    max_iterations = 120
+    max_iterations = 500
     #step_size = 100
 
     n = len(sentence)
@@ -33,8 +33,8 @@ def run(sentence, tagset, hmm_prob):
     k = 1 # number of iterations
     while k <= max_iterations:
        step_size = 1.0 / math.sqrt(k)
-       print "\niteration:", k
-       print "-------------------------------"
+       #print "\niteration:", k
+       #print "-------------------------------"
        #print "step size = ", "{0:.2f}".format(step_size)
        tags1, aug_hmm_score, hmm_score = viterbi.run(sentence, tagset, hmm_prob, u)
        #print "vit output:", ' '.join(tags1)
@@ -43,10 +43,10 @@ def run(sentence, tagset, hmm_prob):
        tags2, fst_score = fst_search.run(best_tags, u)
 
        if agree(tags1, tags2): 
-           sys.stderr.write("hmm only = "+ str( hmm_score) + "\n")
-           sys.stderr.write("fst only = "+ str(fst_score) + "\n")
-           sys.stderr.write("big hmm  = "+ str(aug_hmm_score) + "\n")
-           sys.stderr.write("hmm fst  = "+ str(aug_hmm_score + fst_score) + "\n")
+           #sys.stderr.write("hmm only = "+ str( hmm_score) + "\n")
+           #sys.stderr.write("fst only = "+ str(fst_score) + "\n")
+           #sys.stderr.write("big hmm  = "+ str(aug_hmm_score) + "\n")
+           #sys.stderr.write("hmm fst  = "+ str(aug_hmm_score + fst_score) + "\n")
            return best_tags, k, tags1, tags2  # converges in the kth iteration
        y = compute_indicators(tags1, tagset)
        z = compute_indicators(tags2, tagset)

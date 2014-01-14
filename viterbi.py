@@ -95,13 +95,10 @@ def run(sentence, labelset, weights, dd_u):
         tags.append(bp[k+1][last_tag])
     
     tags = list(reversed(tags))
-    print ' '.join(tags), " : hmm"
+    #print ' '.join(tags), " : hmm"
     #print "viterbi score = ", "{0:.2f}".format(max_score)
     hmm_only = get_hmm_only_score(tags, sentence, weights)
     aug_score = get_aug_hmm(tags, sentence, weights, dd_u)
-    #print "viterbi =", max_score
-    #print "should be", aug_score
-    #TODO: why is max_score different from aug_score?
     return tags, aug_score, hmm_only
 
 def get_hmm_only_score(seq, sent, hmm):

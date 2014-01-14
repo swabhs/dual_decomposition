@@ -40,7 +40,7 @@ def execute(dataset, hmm_file, tag_file):
             if tags2 == best_tags:
                 print "YOU ARE WRONG!"
                 wrong += 1
-                #break
+                break
             if num_iterations != -1:
                 facc = evaluate.accuracy(truetags, tags2)
                 #sys.stderr.write("fst tagger accuracy = " + str(facc) + "\n")
@@ -50,7 +50,7 @@ def execute(dataset, hmm_file, tag_file):
                 #sys.stderr.write("best tags accuracy = " + str(bacc) + "\n")
                 best_acc += bacc
 
-                sys.stderr.write("\nconverges in " + str(num_iterations) + " iterations \n")
+                sys.stderr.write("converges in " + str(num_iterations) + " iterations \n")
                 converges += 1
                 avg_iterations += num_iterations
             else:
@@ -63,9 +63,9 @@ def execute(dataset, hmm_file, tag_file):
             #if i == 10:
                 #break
     sys.stderr.write("\nsystem performance\n--------------------\n")
-    sys.stderr.write("\naverage accuracy of 2nd best: " + str(fst_acc/converges) +"\n")
     sys.stderr.write("\ngoes wrong: " + str(wrong/converges) +"\n")
-    sys.stderr.write("average accuracy of best: " + str(best_acc/converges) +"\n")
+    sys.stderr.write("\naverage accuracy of best: " + str(best_acc/converges) +"\n")
+    sys.stderr.write("average accuracy of 2nd best: " + str(fst_acc/converges) +"\n")
     
     sys.stderr.write("\nsystem efficiency\n---------------------\n")
     sys.stderr.write("\n" + str(avg_iterations/converges) + " iterations on average\n")
