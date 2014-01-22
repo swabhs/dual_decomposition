@@ -34,7 +34,9 @@ def execute(dataset, hmm_file, tag_file):
             truetags = test_tags[test_sentences.index(sentence)]
             
             sys.stderr.write('\n' + str(i)+ '\n')
-            print ' '.join(ts[i-1])
+            sys.stderr.write(' '.join(ts[i-1]) + "\n")
+            print ' '.join(sentence)
+            #print ' '.join(ts[i-1])
             
             best_tags, num_iterations, tags1, tags2 = dd_tagger_fst.run(sentence, tagset, hmm)
             if tags2 == best_tags:
