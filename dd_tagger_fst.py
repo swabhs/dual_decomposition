@@ -22,7 +22,7 @@ def init_dd_param(u, n, tagset):
 Executes the dual decomposition algorithm
 '''
 def run(sentence, tagset, hmm_prob):
-    max_iterations = 500
+    max_iterations = 200
     #step_size = 100
 
     n = len(sentence)

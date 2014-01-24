@@ -28,7 +28,7 @@ Executes the dual decomposition algorithm to get the k-best
 list of sequences
 '''
 def run(sentence, tagset, hmm, k_best_list):
-    max_iter = 10
+    max_iter = 500
     
     n = len(sentence)
     k = len(k_best_list)
@@ -45,33 +45,30 @@ def run(sentence, tagset, hmm, k_best_list):
  
     iteration = 1
     while iteration <= max_iter:
-        print iteration
-        step_size = 10.0 #/ math.sqrt(iteration)
+        #print iteration
+        step_size = 21.0 / math.sqrt(iteration)
         #print "step size", step_size 
         
         seqs = []
         indicators = []
         for i in u[0].iterkeys():
             for t in u[0][i].iterkeys():
-                ku[i][t] = 1 * u[0][i][t]
+                ku[i][t] = -1 * u[0][i][t]
         seq1, score1, score2 = viterbi.run(sentence, tagset, hmm, ku)
         seqs.append(seq1)
         indicators.append(compute_indicators(seq1, tagset))
-        print 0, ' '.join(seq1)
+        #print 0, ' '.join(seq1)
 
 
         for j in range(k):
             seq, fst_score = fst_search.run(k_best_list[j], u[j+1])
-            print j+1, ' '.join(seq)
+            #print j+1, ' '.join(seq)
             seqs.append(seq)
             indicators.append(compute_indicators(seq, tagset))
        
         # check for agreement
         agree = True
         for seq in seqs[1:]:
-            if seq == seq1:
-                print seqs.index(seq)
-                return
             if seq != seq1:
                 agree = False
                 break
@@ -90,14 +87,16 @@ Update
 def update(indicators, u, w, step_size):
     n = len(w)
     k = len(indicators)
-    j = 0
-    for u_j in u:
-        print "dd param for", j
-        for i in u_j.iterkeys():
-            for t in u_j[i].iterkeys():
-                print u_j[i][t], 
-            print
-        j += 1
+#    j = 0
+#    for u_j in u:
+#        print "dd param for", j
+#        print "\t".join(u_j[0].keys())
+#        for i in u_j.iterkeys():
+#            for t in u_j[i].iterkeys():
+#                print "{0:.2f}".format(u_j[i][t]) + "\t", 
+#            print
+#        j += 1
+#        break
     #sys.stderr.write(str(n*len(w[0])) + "\n")
     for i in range(n):
         for t in w[i]:
