@@ -34,29 +34,28 @@ def execute(dataset, hmm_file, tag_file):
             best_tags, num_iter, tags1, tags2 = dd_tagger_fst.run(sentence, tagset, hmm)
             if tags2 == best_tags:
                 sys.stderr.write("YOU ARE WRONG!\n")
-                break
             if num_iter != -1:
                 sec_conv += 1
-                sys.stderr.write("2nd best converges in " + str(num_iter) + " iterations\n")
+                sys.stderr.write("2nd best converges in " + str(num_iter) + "\n")
                 k_best.append(best_tags)
                 k_best.append(tags1)
                 
                 third_best, num_iter2 = dd_k_best.run(sentence, tagset, hmm, k_best)
                 if num_iter2 != -1:
-                    sys.stderr.write("3rd best converges in " + str(num_iter2) + " iterations\n")
+                    sys.stderr.write("3rd best converges in " + str(num_iter2) + "\n")
                     conv += 1
                     k_best.append(third_best)
                     fourth_best, num_iter3 = dd_k_best.run(sentence, tagset, hmm, k_best)
                     sys.stderr.write("4th best converges in " + str(num_iter3) + "\n")
+                    print ' '.join(best_tags)
+                    print ' '.join(tags2)
+                    print ' '.join(third_best)
                     print ' '.join(fourth_best)
                 else:
                     sys.stderr.write( "3rd best does not converge :(\n")
             else:
                 sys.stderr.write("2nd best does not converge :(\n")
                 continue
-            print ' '.join(best_tags)
-            print ' '.join(tags2)
-            print ' '.join(third_best)
             print
     
     sys.stderr.write("% convergence of 2nd best =" + str(sec_conv*100/i) + "\n")

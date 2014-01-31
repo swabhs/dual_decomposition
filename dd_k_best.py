@@ -61,7 +61,7 @@ def run(sentence, tagset, hmm, k_best_list):
 
 
         for j in range(k):
-            seq, fst_score = fst_search.run(k_best_list[j], u[j+1])
+            seq, fst_score = fst_search.run(k_best_list[j], u[j+1], tagset)
             #print j+1, ' '.join(seq)
             seqs.append(seq)
             indicators.append(compute_indicators(seq, tagset))

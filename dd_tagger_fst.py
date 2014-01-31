@@ -40,7 +40,7 @@ def run(sentence, tagset, hmm_prob):
        #print "vit output:", ' '.join(tags1)
        if k == 1:
           best_tags = tags1
-       tags2, fst_score = fst_search.run(best_tags, u)
+       tags2, fst_score = fst_search.run(best_tags, u, tagset)
 
        if agree(tags1, tags2): 
            #sys.stderr.write("hmm only = "+ str( hmm_score) + "\n")

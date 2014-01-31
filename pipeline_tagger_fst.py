@@ -6,7 +6,7 @@ Created on Oct 15, 2013
 
 @author: swabha
 '''
-
+from __future__ import division
 import sys,re, time
 import data_reader, hmm_utils, evaluate, viterbi, dd_tagger_fst
 from smoothing import replace_test
@@ -34,15 +34,15 @@ def execute(dataset, hmm_file, tag_file):
             truetags = test_tags[test_sentences.index(sentence)]
             
             sys.stderr.write('\n' + str(i)+ '\n')
-            sys.stderr.write(' '.join(ts[i-1]) + "\n")
+            #sys.stderr.write(' '.join(ts[i-1]) + "\n")
             print ' '.join(sentence)
             #print ' '.join(ts[i-1])
             
             best_tags, num_iterations, tags1, tags2 = dd_tagger_fst.run(sentence, tagset, hmm)
             if tags2 == best_tags:
-                print "YOU ARE WRONG!"
+                sys.stderr.write("YOU ARE WRONG!\n")
                 wrong += 1
-                break
+                
             if num_iterations != -1:
                 facc = evaluate.accuracy(truetags, tags2)
                 #sys.stderr.write("fst tagger accuracy = " + str(facc) + "\n")
@@ -62,10 +62,10 @@ def execute(dataset, hmm_file, tag_file):
             #print "gold  : ", ' '.join(truetags)
             print
             
-            #if i == 10:
+            #if i == 100:
                 #break
     sys.stderr.write("\nsystem performance\n--------------------\n")
-    sys.stderr.write("\ngoes wrong: " + str(wrong/converges) +"\n")
+    sys.stderr.write("\n" + str(wrong*100/converges) +"% sequences are wrong:\n")
     sys.stderr.write("\naverage accuracy of best: " + str(best_acc/converges) +"\n")
     sys.stderr.write("average accuracy of 2nd best: " + str(fst_acc/converges) +"\n")
     
