@@ -28,7 +28,7 @@ Executes the dual decomposition algorithm to get the k-best
 list of sequences
 '''
 def run(sentence, tagset, hmm, k_best_list):
-    max_iter = 500
+    max_iter = len(k_best_list)*200
     
     n = len(sentence)
     k = len(k_best_list)

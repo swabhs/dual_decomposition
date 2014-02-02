@@ -25,14 +25,14 @@ def run(best, dd_u, tagset):
         best_tag = ''
         for tag in tagset:
             for prev_tag in tagset:
-                score = get_local_score(tag, prev_tag, best, i)
+                score = pi[-1][prev_tag] + get_local_score(tag, prev_tag, best, i)
                 if score > max_sc:
                     max_sc = score
                     best_tag = tag
             pi_i[tag] = max_sc + dd_u[i][tag]
             bp_i[tag] = best_tag
         pi.append(pi_i)
-        bp[i] = (bp_i)
+        bp.append(bp_i)
 
     # decoding
     tagseq = []
@@ -44,8 +44,9 @@ def run(best, dd_u, tagset):
             last_tag = tag
     tagseq.append(last_tag)
     i = n-2
-    while i > 0:
+    while i >= 0:
         tagseq.append(bp[i+1][tagseq[-1]])
+        i -= 1
     
     tags = reversed(tagseq)
     print ' '.join(tags)
