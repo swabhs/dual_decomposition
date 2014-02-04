@@ -1,46 +1,67 @@
 # /usr/bin/python
 
 '''
-Diverse FST search (based on unigram Hamming distance)
+Diverse FST search (based on bigram Hamming distance)
 '''
-import sys, ast
+import unigram_fst_search
+
+def init(tagset, dd_u, best):
+    pi1 = {}
+    for tag in tagset:
+        pi1[tag] = unigram_fst_search.get_local_score(tag, best, 0) #+ dd_u[0][tag]
+    return pi1        
 
 # given a seq and dual scores, gives the best sequence not equal to given sequence
 def run(best, dd_u, tagset):
     pi = []
-    pi.append(0.0)
-    bp = []
+    pi.append(init(tagset, dd_u, best))
+    bp = {}
 
     n = len(best)
-    for i in range(n):
-        max_sc = float("-inf")
-        best_tag = ''
+    for tag in tagset:
+        print tag,"\t",
+    print
+    for i in range(1, n):
+        pi_i = {}
+        bp_i = {}
         for tag in tagset:
-            score = get_local_score(tag, best, i) + dd_u[i][tag]
-            if score > max_sc:
-                max_sc = score
-                best_tag = tag
-        pi.append(pi[-1] + score)
-        bp.append(best_tag)
-    return bp, pi[-1]
+            max_sc = float("-inf")
+            best_tag = ''
+            for prev_tag in tagset:
+                score = pi[i-1][prev_tag] + get_local_score(tag, prev_tag, best, i) + dd_u[i-1][prev_tag]
+                if score > max_sc:
+                    max_sc = score
+                    best_tag = tag
+            pi_i[tag] = max_sc #+ dd_u[i][tag]
+            bp_i[tag] = best_tag
+        pi.append(pi_i)
+        bp[i] = bp_i
+        for w in tagset:
+            print "{0:.2f}".format(pi[i][w]) + "\t",
+        print
 
-def get_local_score(tag, best, pos):
-    if tag == best[pos]:
+    # decoding
+    tagseq = []
+    max_sc = float("-inf")
+    last_tag = ''
+    for tag in tagset:
+        if pi[n-1][tag] > max_sc:
+            max_sc = pi[n-1][tag]
+            last_tag = tag
+    tagseq.append(last_tag)
+    i = n-1
+    while i > 0:
+        tagseq.append(bp[i][tagseq[-1]])
+        i -= 1
+    
+    tags = list(reversed(tagseq))
+    print ' '.join(tags)
+    return tags, max_sc
+
+# TODO: penalizes bigram, how about some penalty for unigram matching too??
+def get_local_score(tag, prev_tag, best, pos):
+    if tag == best[pos] and prev_tag == best[pos-1]:
         return -1.0
     else:
         return 1.0
-        
-if __name__ == "__main__":
-    line = "{0: {'VB': 0.0, 'NN': 0.0, '*': 0.0, 'STOP': 0.0, '.': 0.0, 'TO': 0.0, 'VBP': 0.0, 'PRP': 1.0, 'RB': 0.0, 'IN': 0.0, 'VBZ': -1.0, 'NNS': 0.0}, 1: {'VB': 0.0, 'NN': 0.0, '*': 0.0, 'STOP': 0.0, '.': 0.0, 'TO': 0.0, 'VBP': 1.0, 'PRP': 0.0, 'RB': 0.0, 'IN': 0.0, 'VBZ': -1.0, 'NNS': 0.0}, 2: {'VB': 0.0, 'NN': 0.0, '*': 0.0, 'STOP': 0.0, '.': 0.0, 'TO': 0.0, 'VBP': 0.0, 'PRP': 0.0, 'RB': 1.0, 'IN': 0.0, 'VBZ': -1.0, 'NNS': 0.0}, 3: {'VB': 0.0, 'NN': 0.0, '*': 0.0, 'STOP': 0.0, '.': 0.0, 'TO': 1.0, 'VBP': 0.0, 'PRP': 0.0, 'RB': 0.0, 'IN': 0.0, 'VBZ': -1.0, 'NNS': 0.0}, 4: {'VB': 1.0, 'NN': 0.0, '*': 0.0, 'STOP': 0.0, '.': 0.0, 'TO': 0.0, 'VBP': 0.0, 'PRP': 0.0, 'RB': 0.0, 'IN': 0.0, 'VBZ': -1.0, 'NNS': 0.0}, 5: {'VB': 0.0, 'NN': 0.0, '*': 0.0, 'STOP': 0.0, '.': 0.0, 'TO': 0.0, 'VBP': 0.0, 'PRP': 0.0, 'RB': 0.0, 'IN': 1.0, 'VBZ': -1.0, 'NNS': 0.0}, 6: {'VB': 0.0, 'NN': 1.0, '*': 0.0, 'STOP': 0.0, '.': 0.0, 'TO': 0.0, 'VBP': 0.0, 'PRP': 0.0, 'RB': 0.0, 'IN': 0.0, 'VBZ': -1.0, 'NNS': 0.0}, 7: {'VB': 0.0, 'NN': 0.0, '*': 0.0, 'STOP': 0.0, '.': 0.0, 'TO': 0.0, 'VBP': 0.0, 'PRP': 0.0, 'RB': 0.0, 'IN': 0.0, 'VBZ': -1.0, 'NNS': 1.0}, 8: {'VB': 0.0, 'NN': 0.0, '*': 0.0, 'STOP': -1.0, '.': 2.0, 'TO': 0.0, 'VBP': 0.0, 'PRP': 0.0, 'RB': 0.0, 'IN': 0.0, 'VBZ': -1.0, 'NNS': 0.0}}"
-    m = ast.literal_eval(line)
-    print '\t'.join(m[0].keys()) 
-    for key, valmap in m.iteritems():
-        for tag, val in valmap.iteritems():
-            print val, "\t",
-        print
 
-    best = "PRP VBP RB TO VB IN NN NNS .".split(" ")
-    
-    sec_best = run(best, m) 
-    print " ".join(best)
-    print " ".join(sec_best)

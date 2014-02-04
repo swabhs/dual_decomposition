@@ -2,7 +2,7 @@
 
 from __future__ import division
 import sys, math
-import fst_search, viterbi
+import bigram_fst_search, viterbi
 
 def init_dd_param(dd_u, n, tagset):
     for i in xrange(0, n):
@@ -61,7 +61,7 @@ def run(sentence, tagset, hmm, k_best_list):
 
 
         for j in range(k):
-            seq, fst_score = fst_search.run(k_best_list[j], u[j+1], tagset)
+            seq, fst_score = bigram_fst_search.run(k_best_list[j], u[j+1], tagset)
             #print j+1, ' '.join(seq)
             seqs.append(seq)
             indicators.append(compute_indicators(seq, tagset))
