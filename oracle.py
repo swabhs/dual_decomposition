@@ -20,38 +20,53 @@ def read_k_best(filename):
             continue
         ele = line.split(" ")
         one.append(ele)
+      
     f.close()
     
-    k_best = []
+#    k_best = []
+#    for item in full:
+#        if len(item) == 1:
+#            k_best.append([])
+#        else:
+#            k_best.append(item[1:])
+    k_best = {}
+    i = 0
     for item in full:
-        k_best.append(item[1:])
-
+        sentence = ' '.join(item[0])
+        k_best[i] = item[1:]
+        #if len(k_best[i]) == 4:
+             #print i, "," ,
+        i += 1
     return k_best
 
-def compare(kbest_all, gold_all, k):
-    corp_acc = 0.0
-    dontcount = 0
-    for gold in gold_all:
-        i = gold_all.index(gold)
-        if i == len(kbest_all): # because we don't have all sentences, yet
-            print "am i breaking out?"
-            break
-        if len(kbest_all[i]) != 4: # because some sentences don't converge
-            dontcount += 1
-            continue
-        print i
-        kbest = kbest_all[i][:k]
-        max_acc = 0.0
+def compare(kbestall, goldall, k):
+    count = 0
+    avgacc = 0.0 # corpus acc for k best
+    for i, gold in goldall.iteritems():
+        if len(kbestall[i]) >= k:
+            kbest = kbestall[i][:k]
+            count += 1
+        else:
+            kbest = kbestall[i]
+        maxacc = 0.0
         for best in kbest:
+            if len(gold[0]) != len(best):
+                print i
             a = evaluate.accuracy(gold[0], best)
-            if a > max_acc:
-                max_acc = a
-        corp_acc += max_acc
-    return corp_acc/(i+1-dontcount)
+            if a > maxacc:
+                maxacc = a
+        avgacc += maxacc
+    conv_rate = count/len(goldall)
+    avgacc /= len(goldall)
+    return conv_rate, avgacc
 
 if __name__ == "__main__":
     k_best = read_k_best(sys.argv[1])
     gold = read_k_best(sys.argv[2])
-    print len(gold)
+    
+    #print len(k_best), len(gold)
+    
     for k in range(4):
-        print compare(k_best, gold, k+1)
+        crate, acc = compare(k_best, gold, k+1)
+        #print acc, ",",
+        print "oracle acc of ", k+1, "best = ", acc, "\tconvergence rate = ", crate

@@ -2,10 +2,10 @@
 
 from __future__ import division
 import sys, math
-import bigram_fst_search, viterbi
+import fst_search, viterbi
 
 def init_dd_param(dd_u, n, tagset):
-    for i in xrange(0, n):
+    for i in range(n):
         dd_u[i] = {}#defaultdict()
         for t in tagset:
             dd_u[i][t] = 0
@@ -13,7 +13,7 @@ def init_dd_param(dd_u, n, tagset):
 # can be made faster, use dictionary shallow copying
 def compute_indicators(seq, tagset):
     ind = {}
-    for i in xrange(0, len(seq)):
+    for i in range(len(seq)):
         z = {}
         for t in tagset:
             if seq[i] == t:
@@ -33,48 +33,26 @@ def run(sentence, tagset, hmm, k_best_list):
     n = len(sentence)
     k = len(k_best_list)
 
-    u = [] # dd parameter list
-    for j in range(k+1):
-        u_j = {}
-        init_dd_param(u_j, n, tagset)
-        u.append(u_j)
-    w = {}
-    init_dd_param(w, n, tagset)
-    ku = {}
-    init_dd_param(ku, n, tagset)
- 
+    u = {} # dual decomposition parameter
+    init_dd_param(u, n, tagset) 
+
     iteration = 1
     while iteration <= max_iter:
         #print iteration
-        step_size = 21.0 / math.sqrt(iteration)
+        step_size = 1.0 / math.sqrt(iteration)
         #print "step size", step_size 
         
-        seqs = []
-        indicators = []
-        for i in u[0].iterkeys():
-            for t in u[0][i].iterkeys():
-                ku[i][t] = -1 * u[0][i][t]
-        seq1, score1, score2 = viterbi.run(sentence, tagset, hmm, ku)
-        seqs.append(seq1)
-        indicators.append(compute_indicators(seq1, tagset))
+        seq1, score1, score2 = viterbi.run(sentence, tagset, hmm, u)
+        y = compute_indicators(seq1, tagset)
         #print 0, ' '.join(seq1)
 
-
-        for j in range(k):
-            seq, fst_score = bigram_fst_search.run(k_best_list[j], u[j+1], tagset)
-            #print j+1, ' '.join(seq)
-            seqs.append(seq)
-            indicators.append(compute_indicators(seq, tagset))
+        seq2, fst_score = fst_search.run(k_best_list, u, tagset)
+        z = compute_indicators(seq2, tagset)
+        #print j+1, ' '.join(seq)
        
         # check for agreement
-        agree = True
-        for seq in seqs[1:]:
-            if seq != seq1:
-                agree = False
-                break
-       
-        if agree == False:
-            update(indicators, u, w, step_size)
+        if seq1 != seq2:
+            update(y, z, u, step_size)
         else:
             return seq1, iteration
 
@@ -82,46 +60,12 @@ def run(sentence, tagset, hmm, k_best_list):
     return seq1, -1 
 
 '''
-Update
+Dual decomposition update
 '''
-def update(indicators, u, w, step_size):
-    n = len(w)
-    k = len(indicators)
-#    j = 0
-#    for u_j in u:
-#        print "dd param for", j
-#        print "\t".join(u_j[0].keys())
-#        for i in u_j.iterkeys():
-#            for t in u_j[i].iterkeys():
-#                print "{0:.2f}".format(u_j[i][t]) + "\t", 
-#            print
-#        j += 1
-#        break
-    #sys.stderr.write(str(n*len(w[0])) + "\n")
-    for i in range(n):
-        for t in w[i]:
-            sum_ind = 0.0
-            for ind in indicators:
-                sum_ind += ind[i][t]
-            w[i][t] = sum_ind/k
-
-    for i in range(n):
-        for t in w[i]:
-            j = 0
-            for ind in indicators:
-                u[j][i][t] = u[j][i][t] - step_size * (ind[i][t] - w[i][t])
-                j += 1
-    check_dd_param(u)
-        
-def check_dd_param(u):
-    for i in u[0].iterkeys():
-        for t in u[0][i].iterkeys():
-            s = 0
-            for u_j in u:
-                s += u_j[i][t]
-            if s > 0.00000001:
-                print "DD IS WRONG"
-                return
+def update(indi1, indi2, u, step_size):
+    for i in range(len(indi1)):
+        for t in u[i].iterkeys():
+            u[i][t] -= (indi2[i][t] - indi1[i][t])*step_size
 
 
                 

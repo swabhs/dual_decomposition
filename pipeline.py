@@ -30,13 +30,15 @@ def execute(dataset, hmm_file, tag_file, k):
             sys.stderr.write('\n' + str(i)+ '\n')
             sys.stderr.write(' '.join(sentence) + "\n")
             print ' '.join(sentence)
-
+            #TODO remove redundancy
             best_tags, num_iter, second_best, sb2 = dd_tagger_fst.run(sentence, tagset, hmm)
             conv_rates[0] += 1
             k_best.append(best_tags)
+            next_best, num_iter = dd_k_best.run(sentence, tagset, hmm, k_best)
             if num_iter == -1:
                 sys.stderr.write("2nd best does not converge :( \n")
                 print ' '.join(best_tags)
+                print
                 continue
             j = 2 # we have the best, and the second best now
             conv_rates[j-1] += 1
