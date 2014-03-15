@@ -3,7 +3,6 @@
 '''
 Pipeline to run k-best/k-diverse-best sequence labeling using dual
 decomposition.
-Allows non-converging sequences to move forward
 '''
 
 
@@ -35,12 +34,12 @@ def execute(dataset, hmm_file, tag_file, k):
             best_tags, num_iter, second_best, sb2 = dd_tagger_fst.run(sentence, tagset, hmm)
             conv_rates[0] += 1
             k_best.append(best_tags)
-            #next_best, num_iter = dd_k_best.run(sentence, tagset, hmm, k_best)
+            next_best, num_iter = dd_k_best.run(sentence, tagset, hmm, k_best)
             if num_iter == -1:
                 sys.stderr.write("2nd best does not converge :( \n")
-                #print ' '.join(best_tags)
-                #print
-                #continue
+                print ' '.join(best_tags)
+                print
+                continue
             j = 2 # we have the best, and the second best now
             conv_rates[j-1] += 1
             sys.stderr.write(str(j) + " best converges in " + str(num_iter) + " iterations \n")
@@ -48,14 +47,13 @@ def execute(dataset, hmm_file, tag_file, k):
          
             while j < k:
                 next_best, num_iter = dd_k_best.run(sentence, tagset, hmm, k_best)
-                k_best.append(next_best)
                 if num_iter != -1:
                     conv_rates[j] += 1
-                    #k_best.append(next_best)
+                    k_best.append(next_best)
                     sys.stderr.write(str(j+1) + " best converges in " + str(num_iter) + " iterations \n")
                 else:
                     sys.stderr.write(str(j+1) + "th best does not converge\n")
-                    #break
+                    break
                 j += 1
 
         for best in k_best:

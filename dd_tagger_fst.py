@@ -9,7 +9,7 @@ Created on Oct 15, 2013
 '''
 
 from collections import defaultdict
-import utils, cky, viterbi, bigram_fst_search, math
+import utils, cky, viterbi, fst_search, math
 import sys
 
 def init_dd_param(u, n, tagset):
@@ -40,7 +40,7 @@ def run(sentence, tagset, hmm_prob):
        #print "vit output:", ' '.join(tags1)
        if k == 1:
           best_tags = tags1
-       tags2, fst_score = bigram_fst_search.run(best_tags, u, tagset)
+       tags2, fst_score = fst_search.run(best_tags, u, tagset)
 
        if agree(tags1, tags2): 
            #sys.stderr.write("hmm only = "+ str( hmm_score) + "\n")
